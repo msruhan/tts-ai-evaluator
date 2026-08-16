@@ -13,7 +13,11 @@ import type {
   ReviewerComment,
 } from "./types";
 import { formatAvalanchSkillsForPrompt } from "./avalanch-skills";
-import { getSupabaseAdmin, isSupabaseConfigured } from "./supabase";
+import {
+  explainSupabaseError,
+  getSupabaseAdmin,
+  isSupabaseConfigured,
+} from "./supabase";
 
 const MAX_MEMORY_SKILLS = 40;
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -111,7 +115,9 @@ export async function listEvaluations(): Promise<EvaluationSummary[]> {
       .order("created_at", { ascending: false });
 
     if (error) {
-      throw new Error(`Gagal memuat history: ${error.message}`);
+      throw new Error(
+        explainSupabaseError(`Gagal memuat history: ${error.message}`),
+      );
     }
 
     return (data || []).map((row) => {
@@ -167,7 +173,9 @@ export async function getEvaluation(
       .maybeSingle();
 
     if (error) {
-      throw new Error(`Gagal memuat evaluasi: ${error.message}`);
+      throw new Error(
+        explainSupabaseError(`Gagal memuat evaluasi: ${error.message}`),
+      );
     }
     if (!data) return null;
     return rowToRecord(data as EvaluationRow);
@@ -222,7 +230,9 @@ export async function saveEvaluation(
       .single();
 
     if (error) {
-      throw new Error(`Gagal menyimpan evaluasi: ${error.message}`);
+      throw new Error(
+        explainSupabaseError(`Gagal menyimpan evaluasi: ${error.message}`),
+      );
     }
     return rowToRecord(data as EvaluationRow);
   }
@@ -245,7 +255,9 @@ export async function deleteEvaluation(id: string): Promise<boolean> {
       .eq("id", id);
 
     if (error) {
-      throw new Error(`Gagal menghapus evaluasi: ${error.message}`);
+      throw new Error(
+        explainSupabaseError(`Gagal menghapus evaluasi: ${error.message}`),
+      );
     }
     return (count || 0) > 0;
   }
@@ -268,7 +280,9 @@ export async function readMemory(): Promise<EvaluatorMemory> {
       .limit(MAX_MEMORY_SKILLS);
 
     if (error) {
-      throw new Error(`Gagal memuat memory: ${error.message}`);
+      throw new Error(
+        explainSupabaseError(`Gagal memuat memory: ${error.message}`),
+      );
     }
 
     const skills = ((data || []) as MemorySkillRow[]).map(skillRowToSkill);
@@ -335,7 +349,9 @@ export async function addReview(
       .single();
 
     if (updateError) {
-      throw new Error(`Gagal menyimpan review: ${updateError.message}`);
+      throw new Error(
+        explainSupabaseError(`Gagal menyimpan review: ${updateError.message}`),
+      );
     }
 
     const { data: skillRow, error: skillError } = await supabase
@@ -351,7 +367,11 @@ export async function addReview(
       .single();
 
     if (skillError) {
-      throw new Error(`Gagal menyimpan memory skill: ${skillError.message}`);
+      throw new Error(
+        explainSupabaseError(
+          `Gagal menyimpan memory skill: ${skillError.message}`,
+        ),
+      );
     }
 
     const { data: overflow } = await supabase
