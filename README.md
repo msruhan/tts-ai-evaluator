@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TTS AI Evaluator
 
-## Getting Started
+Web app untuk evaluasi Text-to-Speech (Indonesia / Malaysia / English) via
+SumoPod AI. History + reviewer memory mendukung **local file** dan **Supabase**.
 
-First, run the development server:
+## Fitur
+
+- Upload reference, Audio A, Audio B + text prompt
+- Dropdown bahasa evaluasi
+- Catatan pendengar + dropdown kesalahan bahasa
+- Ratings Avalanch + rationale/justification bilingual (EN + ID)
+- History sidebar
+- Reviewer comment → memory skills untuk evaluasi berikutnya
+
+## Storage mode
+
+| Mode | Kapan aktif | Data disimpan di |
+|---|---|---|
+| **local** | Env Supabase kosong | `data/evaluations/`, `data/memory.json` |
+| **supabase** | `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` terisi | Tabel Supabase |
+
+Lokal tetap jalan tanpa Supabase. Untuk Vercel, isi env Supabase.
+
+## Setup lokal (tanpa Supabase)
 
 ```bash
+cp .env.example .env.local
+# isi SUMOPOD_API_KEY saja; biarkan Supabase kosong
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup dengan Supabase
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Buat project di [Supabase](https://supabase.com)
+2. Jalankan SQL di `supabase/schema.sql`
+3. Isi di `.env.local` / Vercel:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Key | Description |
+|---|---|
+| `SUMOPOD_API_KEY` | API key SumoPod |
+| `SUMOPOD_MODEL` | Default `gemini/gemini-3.5-flash` |
+| `SUMOPOD_BASE_URL` | Default `https://ai.sumopod.com/v1` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server only) |
 
-## Learn More
+## Deploy Vercel
 
-To learn more about Next.js, take a look at the following resources:
+1. Push repo ke GitHub
+2. Import di Vercel
+3. Set env SumoPod + Supabase
+4. Pastikan function duration cukup (60–120s) untuk evaluasi audio
+5. Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Jangan commit `SUPABASE_SERVICE_ROLE_KEY`. Audio tidak disimpan di DB.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Stack
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js (App Router)
+- TypeScript + Tailwind CSS
+- `openai` (SumoPod-compatible)
+- `@supabase/supabase-js`

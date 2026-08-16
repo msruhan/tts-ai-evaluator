@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "src/app/api/evaluate/route.ts": {
+      "maxDuration": 120
+    }
+  }
+}
