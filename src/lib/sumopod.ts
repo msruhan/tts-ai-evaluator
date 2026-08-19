@@ -165,7 +165,7 @@ Workflow:
 3. Listen to Audio A fully, then Audio B fully.
 4. Score the dimensions below for the selected target language, combining your hearing with human notes when present (especially language-error notes).
 5. Write independent rationales (English + ${localName}), pick overall naturalness winner, write justification (English + ${localName}).
-6. Recheck consistency before finalizing. If a clip has a confirmed language mismatch/error, reflect that in pronunciation/nativeness/naturalness as appropriate and mention it concretely.
+6. Recheck consistency before finalizing. If a clip has a confirmed language mismatch/error, reflect that in pronunciation/nativeness/naturalness as appropriate and mention it concretely. Confirm rationale_a/b both start with "The audio" and rationale_*_id both start with "Suara".
 
 Dimensions & options:
 1. audio_and_recording_quality — A_BETTER | B_BETTER | BOTH_BAD | BOTH_GOOD
@@ -185,12 +185,12 @@ Dimensions & options:
 
 Required text fields (bilingual):
 - rationale_a: 10–100 words, natural English. That clip alone. No comparison. Do NOT write "Audio A" or "Audio B".
-  Do NOT say "the speaker" (ambiguous). Prefer "The sound…", "The delivery…", "The speech…", "The voice…", "This clip…".
+  Do NOT say "the speaker" (ambiguous). ALWAYS start with "The audio…". rationale_b MUST use that same opening (never "The delivery…" on one and "The speech…" on the other).
   Prefer concrete evidence: timestamps (e.g. near 0:23), specific words/phrases, misheard/mispronounced examples, named intonation issues on particular sentences.
-  Style examples: "The sound has good consistent pacing, but mild drift in the voice near 0:23. There were slight background noises in the beginning."; "The intonation could have gone up at [word] instead of going down. The pronunciation of [ABC] sounded stilted."
+  Style examples: "The audio has good consistent pacing, but mild drift in the voice near 0:23. There were slight background noises in the beginning."; "The audio should have risen at [word] instead of falling. The pronunciation of [ABC] sounded stilted."
   Avoid: "The speaker delivers the text…"
-- rationale_a_id: same meaning in natural Bahasa Indonesia (10–100 words), same independence + concrete evidence rules. Avoid "pembicara/speaker" as subject; prefer "Suara…", "Penyampaian…", "Ucapan…". Always Indonesian even if the evaluated audio is Malay/English.
-- rationale_b / rationale_b_id: same for the other clip.
+- rationale_a_id: same meaning in natural Bahasa Indonesia (10–100 words), same independence + concrete evidence rules. Avoid "pembicara/speaker". ALWAYS start with "Suara…". rationale_b_id MUST use the same opening (never "Penyampaian…" vs "Ucapan…"). Always Indonesian even if the evaluated audio is Malay/English.
+- rationale_b / rationale_b_id: same rules for the other clip; openings must match A.
 - justification: 10–50 words, natural English tipping point. Do not name "Audio A/B"; use "the one I picked" / "the other one". Mention the decisive concrete flaw/strength when possible.
 - justification_id: same meaning in natural Bahasa Indonesia (10–50 words). Always Indonesian.
 
@@ -201,6 +201,50 @@ function toAudioFormat(mimeType: string): "wav" | "mp3" {
   const mime = mimeType.toLowerCase();
   if (mime.includes("mpeg") || mime.includes("mp3")) return "mp3";
   return "wav";
+}
+
+const EN_RATIONALE_OPENER = "The audio";
+const ID_RATIONALE_OPENER = "Suara";
+const EN_LEAD_RE =
+  /^(the\s+(?:delivery|speech|sounds?|audio|voice|clip)|this\s+clip)(\s+in this clip)?\b/i;
+const ID_LEAD_RE =
+  /^(penyampaian|ucapan|suara|audio|klip ini)(\s+dalam klip ini)?\b/i;
+
+function rewriteRationaleLead(text: string, opener: string, leadRe: RegExp): string {
+  const raw = String(text || "").trim();
+  if (!raw) return raw;
+  if (leadRe.test(raw)) return raw.replace(leadRe, opener);
+  if (raw.toLowerCase().startsWith(opener.toLowerCase())) {
+    return opener + raw.slice(opener.length);
+  }
+  const rest = raw.charAt(0).toLowerCase() + raw.slice(1);
+  return `${opener} ${rest}`;
+}
+
+function alignRationaleOpeners(result: EvaluationResult): EvaluationResult {
+  return {
+    ...result,
+    rationale_a: rewriteRationaleLead(
+      result.rationale_a,
+      EN_RATIONALE_OPENER,
+      EN_LEAD_RE,
+    ),
+    rationale_b: rewriteRationaleLead(
+      result.rationale_b,
+      EN_RATIONALE_OPENER,
+      EN_LEAD_RE,
+    ),
+    rationale_a_id: rewriteRationaleLead(
+      result.rationale_a_id,
+      ID_RATIONALE_OPENER,
+      ID_LEAD_RE,
+    ),
+    rationale_b_id: rewriteRationaleLead(
+      result.rationale_b_id,
+      ID_RATIONALE_OPENER,
+      ID_LEAD_RE,
+    ),
+  };
 }
 
 function audioPart(label: string, audio: { mimeType: string; data: string }) {
@@ -278,5 +322,5 @@ export async function evaluateWithSumopod(input: {
     throw new Error("Model tidak mengembalikan hasil penilaian.");
   }
 
-  return JSON.parse(text) as EvaluationResult;
+  return alignRationaleOpeners(JSON.parse(text) as EvaluationResult);
 }
