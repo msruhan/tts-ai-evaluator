@@ -238,6 +238,12 @@ export default function EvaluatorApp() {
           >
             + Evaluasi baru
           </button>
+          <a
+            href="/task-gyro-accordion"
+            className="mt-2 block w-full rounded-xl border border-cyan-800/60 bg-slate-900 px-3 py-2.5 text-left text-sm font-medium text-cyan-200 transition hover:bg-slate-800"
+          >
+            Task Gyro Accordion →
+          </a>
           <p className="mt-2 px-1 text-[11px] text-slate-400">
             Storage: {storageMode} · Avalanch: {avalanchSkillsCount} · Memory:{" "}
             {memoryCount}
