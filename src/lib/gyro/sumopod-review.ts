@@ -51,53 +51,27 @@ function buildPrompt(req: GyroReviewRequest, memory: GyroMemory) {
   const { context, notes } = req;
   const issues =
     notes.issues.length > 0 ? notes.issues.join(", ") : "(none selected)";
-  const tagPath = [context.p1, context.p2, context.p3].filter(Boolean).join(" | ") || "(incomplete)";
+  const tagPath =
+    [context.p1, context.p2, context.p3].filter(Boolean).join(" | ") ||
+    "(parse from task paste if present)";
 
   return `You are a Gyro Accordion: Deep Research Evaluation reviewer (Indonesian rater).
 Evaluate how Gemini Live executed complex research across P1 BEFORE, P2 WHILE, P3 AFTER.
 Stay grounded. Never invent evidence. Descriptive answers — no one-word Yes/No without explanation.
+The primary source of task definition is the pasted Task Variables block. Parse multimodal, scene, P1/P2/P3 tags, initial prompt, user goal, and before/while/after instructions from it.
+If reviewer notes are empty/unknown, infer only what the transcript clearly supports; otherwise mark unknown / insufficient evidence (reviewer will fill manually).
 
 ${formatGyroGuideForPrompt(memory)}
 
 ${rubricBlock(context.rubricVersion)}
 
-Task context:
+Parsed hints (may be incomplete — prefer Task Variables paste if conflict):
 - Language: Bahasa Indonesia (fixed)
 - Tag path: ${tagPath}
-- P1 (pre_dr_type / BEFORE): ${context.p1 || "(empty)"}
-- P2 (during_dr_type / WHILE): ${context.p2 || "(empty)"}
-- P3 (post_dr_type / AFTER): ${context.p3 || "(empty)"}
 - Multimodal: ${context.multimodal}
-- Requires scene: ${context.requiresScene}
-- Scene kind: ${context.sceneKind || "(n/a)"}
-- Scene detail: ${context.scene || "(empty)"}
+- Scene: ${context.scene || "(see paste)"}
 
-User goal:
-"""
-${context.userGoal || "(empty)"}
-"""
-
-Initial prompt (localized Turn 1):
-"""
-${context.initialPrompt || "(empty)"}
-"""
-
-Before instructions (P1):
-"""
-${context.beforeInstructions || "(empty)"}
-"""
-
-While instructions (P2):
-"""
-${context.whileInstructions || "(empty)"}
-"""
-
-After instructions (P3):
-"""
-${context.afterInstructions || "(empty)"}
-"""
-
-Extra task notes / card dump:
+FULL Task Variables paste:
 """
 ${context.taskText || "(empty)"}
 """
@@ -107,18 +81,18 @@ Transcript:
 ${context.transcript || "(empty)"}
 """
 
-Reviewer notes:
-- Deep Research requested (phrase said): ${notes.deepResearchRequested}
+Optional reviewer notes (manual — may be sparse):
+- Deep Research requested: ${notes.deepResearchRequested}
 - Deep Research phrase spoken / regex met: ${notes.deepResearchPhraseSpoken}
-- Deep Research actually triggered: ${notes.deepResearchTriggered}
+- Deep Research triggered: ${notes.deepResearchTriggered}
 - Captions / transcription visible: ${notes.captionsVisible}
 - Visual overlay used: ${notes.visualOverlayUsed}
 - Personalization observed: ${notes.personalizationObserved}
-- Recording complete (no black screen / cut-off): ${notes.recordingComplete}
+- Recording complete: ${notes.recordingComplete}
 - Comments match recording (Golden Rule): ${notes.commentsMatchRecording}
 - Issue toggles: ${issues}
 - Comments: ${notes.comments || "(empty)"}
-- Corrections to submitted turns: ${notes.corrections || "(empty)"}
+- Corrections: ${notes.corrections || "(empty)"}
 
 Return JSON only with:
 - summary: 3–6 sentence Indonesian reviewer summary

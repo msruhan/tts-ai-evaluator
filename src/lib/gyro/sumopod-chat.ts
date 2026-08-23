@@ -56,18 +56,23 @@ const chatJsonSchema = {
 function contextBrief(context: GyroTaskContext, notes: GyroReviewerNotes) {
   return `Task snapshot:
 - Tags: ${[context.p1, context.p2, context.p3].filter(Boolean).join(" | ") || "(none)"}
-- Multimodal: ${context.multimodal} | Scene: ${context.requiresScene} / ${context.sceneKind || "-"} / ${context.scene || "-"}
-- User goal: ${context.userGoal || "(empty)"}
-- Initial prompt: ${context.initialPrompt || "(empty)"}
-- Before (P1): ${context.beforeInstructions || "(empty)"}
-- While (P2): ${context.whileInstructions || "(empty)"}
-- After (P3): ${context.afterInstructions || "(empty)"}
-- Extra: ${context.taskText || "(empty)"}
-- Transcript (excerpt): ${(context.transcript || "").slice(0, 6000) || "(empty)"}
-- Notes DR requested/phrase/triggered: ${notes.deepResearchRequested}/${notes.deepResearchPhraseSpoken}/${notes.deepResearchTriggered}
+- Multimodal: ${context.multimodal}
+- Scene: ${context.scene || "-"}
+
+FULL Task Variables paste:
+"""
+${(context.taskText || "").slice(0, 12000) || "(empty)"}
+"""
+
+Transcript (excerpt):
+"""
+${(context.transcript || "").slice(0, 6000) || "(empty)"}
+"""
+
+Reviewer notes (optional):
+- DR requested/phrase/triggered: ${notes.deepResearchRequested}/${notes.deepResearchPhraseSpoken}/${notes.deepResearchTriggered}
 - Issues: ${notes.issues.join(", ") || "(none)"}
-- Comments: ${notes.comments || "(empty)"}
-- Corrections: ${notes.corrections || "(empty)"}`;
+- Comments: ${notes.comments || "(empty)"}`;
 }
 
 function currentAnswersBlock(result: GyroReviewResult | null) {
