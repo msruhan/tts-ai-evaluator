@@ -64,6 +64,14 @@ FULL Task Variables paste:
 ${(context.taskText || "").slice(0, 12000) || "(empty)"}
 """
 
+Layout Summary (Your Layout Summary):
+"""
+${(context.layoutSummary || "").slice(0, 8000) || "(empty)"}
+"""
+
+While turns: ${(context.whileTurns || []).map((t, i) => `T${i + 1}=${t}`).join(" | ") || "(none)"}
+After draft: ${(context.afterDraft || "").slice(0, 1500) || "(empty)"}
+
 Transcript (excerpt):
 """
 ${(context.transcript || "").slice(0, 6000) || "(empty)"}

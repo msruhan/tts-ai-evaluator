@@ -9,11 +9,10 @@ import {
   type GyroIssueKey,
   type GyroReviewResult,
   type GyroReviewerNotes,
-  type RubricVersion,
   type TriState,
 } from "@/lib/gyro/types";
 
-type OutputTab = "summary" | "answers" | "json";
+type OutputTab = "review1" | "review2" | "json";
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
 const DEMO_TASK_PASTE = `📌 Your Task Variables
@@ -54,6 +53,34 @@ You MUST ask for a quick overview of the Deep Research report on Unfiltered prod
 
 ⚠️ Make sure you have read and understood ALL variables above before proceeding.`;
 
+const DEMO_LAYOUT_SUMMARY = `📖 Your Layout Summary
+
+Review all your answers below before proceeding to recording.
+
+🎬 Scene Description: A screen share of a sports analytics website showing today's BRI League 1 matchups and player prop lines.
+
+🎯 User Goal: The user wants to receive highly confident BRI League 1 player prop betting suggestions for today's games, backed by deep research into injury reports, matchup data, and recent player performance.
+
+📋 Before Instructions: Try to trigger Deep Research as quickly as possible. If Gemini asks any clarifying questions before starting, just answer them naturally. If Deep Research doesn't trigger on its own, try explicitly mentioning 'Deep Research'.
+
+💬 P1 - DIRECT: Initial Prompt: Halo. Lakukan deep research untuk pertandingan pembuka BRI Liga 1 dan tentukan tim yang paling layak diprediksi menang berdasarkan laporan cedera, data head-to-head (H2H) berdasarkan riwayat performa tahun sebelumnya.
+
+⏳ While Instruction: Ask if the deep research is nearing completion, express frustration about how long the process is taking, ask for a quick status update on the research progress.
+
+⏳ While - Turn 1: Masih lama ya?
+
+⏳ While - Turn 2: Kira-kira berapa lama ya?
+
+⏳ While - Turn 3: Jangan asal-asalan ya
+
+⏳ While - Turn 4: Belum selesai ya?
+
+⏳ While - Turn 5: Sudah selesai belum?
+
+🏁 After Instruction: The user might ask for a deeper dive into the specific injury impact for one of the recommended player props. The user might inquire about a player not mentioned in the report, wondering if their performance data suggests any value. The user might ask if there are any alternative prop lines for a recommended player that might offer even better value.
+
+🏁 After Draft: Berdasarkan hasil laporan tersebut. Apakah ada atlet terdampak cedera tertentu terhadap salah satu rekomendasi pemain? Apakah ada nama pemain yang tidak disebut dalam laporan tapi punya value tinggi? Apa ada rekomendasi alternatif line pemain dengan value lebih baik?`;
+
 const DEMO_TRANSCRIPT = `User: Aku mau checkout TWS Baseus ini, bisa bantu lihat ulasan jujur di luar app?
 Assistant: Bisa. Mau fokus fokus ke kualitas suara dulu atau daya tahan baterai?
 User: Keduanya, terus bandingkan sama ulasan di Tokopedia.
@@ -91,10 +118,10 @@ function labelClass() {
 export default function GyroApp() {
   const [taskPaste, setTaskPaste] = useState("");
   const [transcript, setTranscript] = useState("");
-  const [rubricVersion, setRubricVersion] = useState<RubricVersion>("v1");
+  const [layoutSummary, setLayoutSummary] = useState("");
   const [notes, setNotes] = useState<GyroReviewerNotes>(emptyNotes);
   const [notesOpen, setNotesOpen] = useState(false);
-  const [tab, setTab] = useState<OutputTab>("answers");
+  const [tab, setTab] = useState<OutputTab>("review1");
   const [result, setResult] = useState<GyroReviewResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,8 +137,8 @@ export default function GyroApp() {
   } | null>(null);
 
   const context = useMemo(
-    () => buildContextFromPaste(taskPaste, transcript, rubricVersion),
-    [taskPaste, transcript, rubricVersion],
+    () => buildContextFromPaste(taskPaste, transcript, "v1", layoutSummary),
+    [taskPaste, transcript, layoutSummary],
   );
 
   const tagPath = [context.p1, context.p2, context.p3].filter(Boolean).join(" | ");
@@ -132,6 +159,7 @@ export default function GyroApp() {
 
   function loadDemo() {
     setTaskPaste(DEMO_TASK_PASTE);
+    setLayoutSummary(DEMO_LAYOUT_SUMMARY);
     setTranscript(DEMO_TRANSCRIPT);
     setNotes(emptyNotes());
     setResult(null);
@@ -165,7 +193,7 @@ export default function GyroApp() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generate gagal.");
       setResult(data.result as GyroReviewResult);
-      setTab("answers");
+      setTab("review1");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generate gagal.");
     } finally {
@@ -175,11 +203,27 @@ export default function GyroApp() {
 
   const outputText = useMemo(() => {
     if (!result) return "";
-    if (tab === "summary") return result.summary;
-    if (tab === "json") return JSON.stringify(result.json, null, 2);
-    return result.answers
-      .map((a) => `${a.id}. ${a.label}\n${a.value}`)
-      .join("\n\n");
+    if (tab === "review1") {
+      return (
+        result.review1?.formatted ||
+        "Review 1 belum tersedia. Klik Generate."
+      );
+    }
+    if (tab === "review2") {
+      return (
+        result.review2?.formatted ||
+        [
+          result.summary,
+          "",
+          ...(result.answers || []).flatMap((a) => [
+            `${a.id}. ${a.label}`,
+            a.value,
+            "",
+          ]),
+        ].join("\n")
+      );
+    }
+    return JSON.stringify(result.json ?? result, null, 2);
   }, [result, tab]);
 
   async function onCopy() {
@@ -231,16 +275,35 @@ export default function GyroApp() {
     if (!pendingUpdate) return;
     const { answers, summary } = pendingUpdate;
     const json: Record<string, unknown> = {
-      rubricVersion,
+      ...(result?.json || {}),
+      rubricVersion: "v1",
       tagPath,
       summary,
       answers,
       updatedViaChat: true,
     };
     for (const a of answers) json[a.id] = a.value;
-    setResult({ summary, answers, json });
+    setResult({
+      ...(result || { summary: "", answers: [], json: {} }),
+      summary,
+      answers,
+      json,
+      review2: {
+        summary,
+        answers,
+        formatted: [
+          "=== OUTPUT REVIEW 2 — Workflow Q1–Q22 ===",
+          "",
+          "Summary:",
+          summary,
+          "",
+          ...answers.flatMap((a) => [`${a.id}. ${a.label}`, a.value, ""]),
+        ].join("\n"),
+      },
+      review1: result?.review1,
+    });
     setPendingUpdate(null);
-    setTab("answers");
+    setTab("review2");
     setChatMessages((prev) => [
       ...prev,
       {
@@ -293,37 +356,42 @@ export default function GyroApp() {
 
       <main className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4">
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-            <h2 className="text-sm font-semibold text-zinc-100">Input task</h2>
-            <div>
-              <label className={labelClass()}>Rubric</label>
-              <select
-                className={fieldClass()}
-                value={rubricVersion}
-                onChange={(e) =>
-                  setRubricVersion(e.target.value as RubricVersion)
-                }
-              >
-                <option value="v1">V1 — Q1–Q22</option>
-                <option value="v2">V2 — Product quality</option>
-              </select>
-            </div>
-          </div>
-
+          <h2 className="mb-3 text-sm font-semibold text-zinc-100">Input task</h2>
           <div className="space-y-3">
             <div>
               <label className={labelClass()}>
                 Task Variables (paste dari Outlier)
               </label>
               <textarea
-                className={`${fieldClass()} min-h-[220px] font-mono text-[13px]`}
+                className={`${fieldClass()} min-h-[200px] font-mono text-[13px]`}
                 value={taskPaste}
                 onChange={(e) => setTaskPaste(e.target.value)}
                 placeholder="Paste seluruh blok Task Variables di sini (multimodal, scene, prompt, goal, P1/P2/P3, instructions)…"
               />
+            </div>
+            <div>
+              <label className={labelClass()}>
+                Layout Summary (paste dari Outlier)
+              </label>
+              <textarea
+                className={`${fieldClass()} min-h-[200px] font-mono text-[13px]`}
+                value={layoutSummary}
+                onChange={(e) => setLayoutSummary(e.target.value)}
+                placeholder={`Paste blok "Your Layout Summary" (Scene, Goal, Before/While/After, While Turns 1–5, After Draft)…`}
+              />
+              {(context.whileTurns.length > 0 || context.afterDraft) && (
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Ter-parse:{" "}
+                  {context.whileTurns.length > 0
+                    ? `${context.whileTurns.length} while turns`
+                    : "tanpa while turns"}
+                  {context.afterDraft ? " · after draft ✓" : ""}
+                  {context.p1 ? ` · ${context.p1}` : ""}
+                </p>
+              )}
               <p className="mt-1 text-[11px] text-zinc-500">
-                AI membaca blok ini utuh. Tag P1/P2/P3 terdeteksi otomatis jika
-                ada di teks.
+                Disarankan. Dipakai untuk menilai skrip turn vs transcript.
+                Generate: Review 1 (form) + Review 2 (Q1–Q22).
               </p>
             </div>
             <div>
@@ -450,8 +518,8 @@ export default function GyroApp() {
           <div className="mb-3 flex gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1">
             {(
               [
-                ["summary", "Summary"],
-                ["answers", "Answers"],
+                ["review1", "Review 1 · Form"],
+                ["review2", "Review 2 · Q1–Q22"],
                 ["json", "JSON"],
               ] as const
             ).map(([id, label]) => (
@@ -476,10 +544,87 @@ export default function GyroApp() {
             </p>
           )}
 
-          <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-[13px] text-zinc-200">
-            {outputText ||
-              "Paste Task Variables + transcript, lalu Generate."}
-          </pre>
+          {tab === "review1" && result?.review1 ? (
+            <div className="max-h-[560px] space-y-3 overflow-auto">
+              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-cyan-400/90">
+                  Deep research was triggered?
+                </p>
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Jika No, itu bukan otomatis fail — catat fakta dari transcript.
+                </p>
+                <p className="mt-2 text-sm font-medium text-zinc-100">
+                  {result.review1.deepResearchTriggered}
+                </p>
+                <p className="mt-1 text-sm text-zinc-300">
+                  {result.review1.deepResearchNoteId}
+                </p>
+              </div>
+              {result.review1.fields.map((f) => (
+                <div key={f.id}>
+                  <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
+                    <p className="text-sm font-semibold text-zinc-100">
+                      {f.title}
+                    </p>
+                    {"promptEn" in f && f.promptEn ? (
+                      <p className="mt-1 text-[11px] leading-snug text-zinc-500">
+                        {f.promptEn}
+                      </p>
+                    ) : null}
+                    <p className="mt-1 text-[11px] leading-snug text-zinc-400">
+                      {f.explainId}
+                    </p>
+                    {f.id === "response_depth" ? (
+                      <p className="mt-2 text-[11px] text-zinc-600">
+                        Skala: 1 Very Poor · 2 · 3 Adequate · 4 · 5 Excellent
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-[11px] text-zinc-600">
+                        Opsi: {f.options.join(" · ")}
+                      </p>
+                    )}
+                    <p className="mt-2 text-sm text-cyan-200">
+                      Pilihan: {f.rating}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-300">
+                      {f.explanationId}
+                    </p>
+                  </div>
+                  {f.id === "response_depth" ? (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm">
+                        <p className="text-xs font-semibold text-zinc-400">
+                          Quality check 1
+                        </p>
+                        <p className="mt-1 text-[11px] text-zinc-500">
+                          Jawaban akurat dan berbasis video/transcript?
+                        </p>
+                        <p className="mt-1 text-zinc-100">
+                          {result.review1.qualityCheckAccurate}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm">
+                        <p className="text-xs font-semibold text-zinc-400">
+                          Grammar check 1
+                        </p>
+                        <p className="mt-1 text-[11px] text-zinc-500">
+                          Ejaan/grammar bersih, tanpa typo AI?
+                        </p>
+                        <p className="mt-1 text-zinc-100">
+                          {result.review1.grammarCheck}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <pre className="max-h-[560px] overflow-auto whitespace-pre-wrap rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-[13px] text-zinc-200">
+              {outputText ||
+                "Paste Task Variables + Layout Summary + transcript, lalu Generate."}
+            </pre>
+          )}
         </section>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">

@@ -53,7 +53,10 @@ export async function POST(request: Request) {
       beforeInstructions: context.beforeInstructions || "",
       whileInstructions: context.whileInstructions || "",
       afterInstructions: context.afterInstructions || "",
+      whileTurns: Array.isArray(context.whileTurns) ? context.whileTurns : [],
+      afterDraft: context.afterDraft || "",
       taskText: context.taskText || "",
+      layoutSummary: context.layoutSummary || "",
       transcript: context.transcript || "",
     };
 

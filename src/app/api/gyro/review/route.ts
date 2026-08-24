@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
+import { buildContextFromPaste } from "@/lib/gyro/parse-task-paste";
 import { reviewWithSumopod } from "@/lib/gyro/sumopod-review";
 import { readGyroMemory } from "@/lib/gyro/store";
 import {
   GYRO_ISSUE_OPTIONS,
-  GYRO_P1_OPTIONS,
-  GYRO_P2_OPTIONS,
-  GYRO_P3_OPTIONS,
   type GyroIssueKey,
-  type P1Tag,
-  type P2Tag,
-  type P3Tag,
-  type SceneKind,
   type TriState,
 } from "@/lib/gyro/types";
 import { getSumopodModel } from "@/lib/sumopod";
@@ -20,34 +14,36 @@ export const maxDuration = 120;
 
 const TRI: TriState[] = ["yes", "no", "unknown"];
 const ISSUE_KEYS = new Set(GYRO_ISSUE_OPTIONS.map((o) => o.key));
-const P1 = new Set(GYRO_P1_OPTIONS.map((o) => o.value));
-const P2 = new Set(GYRO_P2_OPTIONS.map((o) => o.value));
-const P3 = new Set(GYRO_P3_OPTIONS.map((o) => o.value));
-const SCENE_KINDS = new Set<SceneKind>(["", "screen_share", "camera", "other"]);
 
 function asTri(v: unknown): TriState {
   return TRI.includes(v as TriState) ? (v as TriState) : "unknown";
 }
 
-function asP1(v: unknown): P1Tag {
-  return P1.has(v as P1Tag) ? (v as P1Tag) : "";
-}
-function asP2(v: unknown): P2Tag {
-  return P2.has(v as P2Tag) ? (v as P2Tag) : "";
-}
-function asP3(v: unknown): P3Tag {
-  return P3.has(v as P3Tag) ? (v as P3Tag) : "";
-}
-function asSceneKind(v: unknown): SceneKind {
-  return SCENE_KINDS.has(v as SceneKind) ? (v as SceneKind) : "";
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const context = body.context || {};
+    const incoming = body.context || {};
     const notes = body.notes || {};
-    const rubricVersion = context.rubricVersion === "v2" ? "v2" : "v1";
+    const rubricVersion = incoming.rubricVersion === "v2" ? "v2" : "v1";
+    const taskPaste = String(incoming.taskText || body.taskPaste || "");
+    const transcript = String(incoming.transcript || body.transcript || "");
+    const layoutSummary = String(
+      incoming.layoutSummary || body.layoutSummary || "",
+    );
+
+    if (!taskPaste.trim() || !transcript.trim()) {
+      return NextResponse.json(
+        { error: "Task Variables dan Transcript wajib diisi." },
+        { status: 400 },
+      );
+    }
+
+    const context = buildContextFromPaste(
+      taskPaste,
+      transcript,
+      rubricVersion,
+      layoutSummary,
+    );
     const issues = Array.isArray(notes.issues)
       ? (notes.issues as string[]).filter((k): k is GyroIssueKey =>
           ISSUE_KEYS.has(k as GyroIssueKey),
@@ -57,28 +53,7 @@ export async function POST(request: Request) {
     const memory = await readGyroMemory();
     const result = await reviewWithSumopod(
       {
-        context: {
-          rubricVersion,
-          taskLanguage: "id",
-          multimodal: asTri(context.multimodal),
-          requiresScene: asTri(context.requiresScene),
-          sceneKind: asSceneKind(context.sceneKind),
-          scene: String(context.scene || ""),
-          p1: asP1(context.p1),
-          p2: asP2(context.p2),
-          p3: asP3(context.p3),
-          userGoal: String(context.userGoal || ""),
-          initialPrompt: String(context.initialPrompt || ""),
-          beforeInstructions: String(context.beforeInstructions || ""),
-          whileInstructions: String(context.whileInstructions || ""),
-          afterInstructions: String(context.afterInstructions || ""),
-          taskText: String(context.taskText || ""),
-          transcript: String(context.transcript || ""),
-          imageName: context.imageName ? String(context.imageName) : undefined,
-          transcriptFileName: context.transcriptFileName
-            ? String(context.transcriptFileName)
-            : undefined,
-        },
+        context,
         notes: {
           deepResearchRequested: asTri(notes.deepResearchRequested),
           deepResearchTriggered: asTri(notes.deepResearchTriggered),
@@ -103,6 +78,12 @@ export async function POST(request: Request) {
       result,
       model: getSumopodModel(),
       gyroSkills: memory.skills.length,
+      parsedTags: {
+        p1: context.p1,
+        p2: context.p2,
+        p3: context.p3,
+        multimodal: context.multimodal,
+      },
     });
   } catch (error) {
     const message =

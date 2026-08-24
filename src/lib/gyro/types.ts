@@ -134,8 +134,14 @@ export type GyroTaskContext = {
   beforeInstructions: string;
   whileInstructions: string;
   afterInstructions: string;
-  /** Freeform extra task notes / card dump */
+  /** While - Turn 1..N from Layout Summary (scripted wait turns) */
+  whileTurns: string[];
+  /** After Draft scripted follow-up from Layout Summary */
+  afterDraft: string;
+  /** Freeform Task Variables paste */
   taskText: string;
+  /** Outlier Layout Summary paste (scene, turns, after draft) */
+  layoutSummary: string;
   transcript: string;
   imageName?: string;
   transcriptFileName?: string;
@@ -162,9 +168,31 @@ export type GyroAnswer = {
 };
 
 export type GyroReviewResult = {
+  /** @deprecated use review2 — kept for chat compatibility */
   summary: string;
+  /** @deprecated use review2.answers */
   answers: GyroAnswer[];
   json: Record<string, unknown>;
+  review1?: {
+    deepResearchTriggered: "Yes" | "No";
+    deepResearchNoteId: string;
+    fields: {
+      id: string;
+      title: string;
+      explainId: string;
+      rating: string;
+      explanationId: string;
+      options: string[];
+    }[];
+    qualityCheckAccurate: "Yes" | "No";
+    grammarCheck: "Yes" | "No";
+    formatted: string;
+  };
+  review2?: {
+    summary: string;
+    answers: GyroAnswer[];
+    formatted: string;
+  };
 };
 
 export type GyroMemorySkill = {

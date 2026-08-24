@@ -7,6 +7,10 @@ import type {
   RubricVersion,
   SceneKind,
 } from "./types";
+import {
+  parseLayoutSummary,
+  preferNonEmpty,
+} from "./parse-layout-summary";
 
 function sectionAfter(raw: string, startRe: RegExp, endRe?: RegExp): string {
   const m = raw.match(startRe);
@@ -125,7 +129,10 @@ export function emptyTaskContext(rubricVersion: RubricVersion = "v1"): GyroTaskC
     beforeInstructions: "",
     whileInstructions: "",
     afterInstructions: "",
+    whileTurns: [],
+    afterDraft: "",
     taskText: "",
+    layoutSummary: "",
     transcript: "",
   };
 }
@@ -134,15 +141,57 @@ export function buildContextFromPaste(
   taskPaste: string,
   transcript: string,
   rubricVersion: RubricVersion = "v1",
+  layoutSummary = "",
 ): GyroTaskContext {
   const base = emptyTaskContext(rubricVersion);
-  const parsed = parseTaskPaste(taskPaste);
+  const fromTask = parseTaskPaste(taskPaste);
+  const fromLayout = parseLayoutSummary(layoutSummary);
+
+  // Task Variables = tags/setup; Layout Summary = scene/goal/scripts/turns (prefer when present)
+  const whileTurns =
+    fromLayout.whileTurns && fromLayout.whileTurns.length > 0
+      ? fromLayout.whileTurns
+      : [];
+
   return {
     ...base,
-    ...parsed,
-    taskText: taskPaste.slice(0, 20000),
-    transcript: transcript.slice(0, 100_000),
+    ...fromTask,
     taskLanguage: "id",
     rubricVersion,
+    multimodal:
+      fromTask.multimodal && fromTask.multimodal !== "unknown"
+        ? fromTask.multimodal
+        : fromLayout.multimodal || "unknown",
+    requiresScene:
+      fromTask.requiresScene && fromTask.requiresScene !== "unknown"
+        ? fromTask.requiresScene
+        : fromLayout.requiresScene || "unknown",
+    sceneKind: (fromTask.sceneKind || fromLayout.sceneKind || "") as SceneKind,
+    scene: preferNonEmpty(fromLayout.scene, fromTask.scene),
+    p1: (fromTask.p1 || fromLayout.p1 || "") as P1Tag,
+    p2: (fromTask.p2 || fromLayout.p2 || "") as P2Tag,
+    p3: (fromTask.p3 || fromLayout.p3 || "") as P3Tag,
+    userGoal: preferNonEmpty(fromLayout.userGoal, fromTask.userGoal),
+    initialPrompt: preferNonEmpty(
+      fromLayout.initialPrompt,
+      fromTask.initialPrompt,
+    ),
+    beforeInstructions: preferNonEmpty(
+      fromLayout.beforeInstructions,
+      fromTask.beforeInstructions,
+    ),
+    whileInstructions: preferNonEmpty(
+      fromLayout.whileInstructions,
+      fromTask.whileInstructions,
+    ),
+    afterInstructions: preferNonEmpty(
+      fromLayout.afterInstructions,
+      fromTask.afterInstructions,
+    ),
+    whileTurns,
+    afterDraft: preferNonEmpty(fromLayout.afterDraft, ""),
+    taskText: taskPaste.slice(0, 20000),
+    layoutSummary: layoutSummary.slice(0, 20000),
+    transcript: transcript.slice(0, 100_000),
   };
 }
