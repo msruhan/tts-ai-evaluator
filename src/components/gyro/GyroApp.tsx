@@ -546,6 +546,10 @@ export default function GyroApp() {
 
           {tab === "review1" && result?.review1 ? (
             <div className="max-h-[560px] space-y-3 overflow-auto">
+              {(() => {
+                const r1 = result.review1;
+                return (
+                  <>
               <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-cyan-400/90">
                   Deep research was triggered?
@@ -554,19 +558,19 @@ export default function GyroApp() {
                   Jika No, itu bukan otomatis fail — catat fakta dari transcript.
                 </p>
                 <p className="mt-2 text-sm font-medium text-zinc-100">
-                  {result.review1.deepResearchTriggered}
+                  {r1.deepResearchTriggered}
                 </p>
                 <p className="mt-1 text-sm text-zinc-300">
-                  {result.review1.deepResearchNoteId}
+                  {r1.deepResearchNoteId}
                 </p>
               </div>
-              {result.review1.fields.map((f) => (
+              {r1.fields.map((f) => (
                 <div key={f.id}>
                   <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
                     <p className="text-sm font-semibold text-zinc-100">
                       {f.title}
                     </p>
-                    {"promptEn" in f && f.promptEn ? (
+                    {f.promptEn ? (
                       <p className="mt-1 text-[11px] leading-snug text-zinc-500">
                         {f.promptEn}
                       </p>
@@ -600,7 +604,7 @@ export default function GyroApp() {
                           Jawaban akurat dan berbasis video/transcript?
                         </p>
                         <p className="mt-1 text-zinc-100">
-                          {result.review1.qualityCheckAccurate}
+                          {r1.qualityCheckAccurate}
                         </p>
                       </div>
                       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm">
@@ -611,13 +615,16 @@ export default function GyroApp() {
                           Ejaan/grammar bersih, tanpa typo AI?
                         </p>
                         <p className="mt-1 text-zinc-100">
-                          {result.review1.grammarCheck}
+                          {r1.grammarCheck}
                         </p>
                       </div>
                     </div>
                   ) : null}
                 </div>
               ))}
+                  </>
+                );
+              })()}
             </div>
           ) : (
             <pre className="max-h-[560px] overflow-auto whitespace-pre-wrap rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-[13px] text-zinc-200">

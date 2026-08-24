@@ -179,6 +179,7 @@ export type GyroReviewResult = {
     fields: {
       id: string;
       title: string;
+      promptEn?: string;
       explainId: string;
       rating: string;
       explanationId: string;
