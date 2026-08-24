@@ -9,6 +9,10 @@ import {
 } from "./types";
 import { formatGyroGuideForPrompt } from "./store";
 import { REVIEW1_FIELD_DEFS, type Review1Result } from "./review1-form";
+import {
+  buildCrossConsistencyBrief,
+  findCoherenceIssues,
+} from "./cross-consistency";
 
 const BASE_URL = process.env.SUMOPOD_BASE_URL || "https://ai.sumopod.com/v1";
 
@@ -109,21 +113,23 @@ function buildDualPrompt(req: GyroReviewRequest, memory: GyroMemory) {
   ).join("\n");
 
   return `Anda adalah reviewer Gyro Accordion / Gemini Live Deep Research (rater Indonesia).
-Hasilkan DUA output terpisah dalam SATU JSON.
+Hasilkan DUA output terpisah dalam SATU JSON. Review1 dan Review2 harus SATU cerita yang koheren.
 
 ${formatGyroGuideForPrompt(memory)}
 
 ${sharedEvidence(req)}
 
+${buildCrossConsistencyBrief(req.context, req.notes)}
+
 ## OUTPUT REVIEW 1 — Product quality form (Avalanch / Outlier)
 Isi form berikut persis seperti Outlier. Untuk setiap field:
 - rating: SALAH SATU opsi resmi (kecuali free text / multi-select)
-- explanationId: penjelasan singkat Bahasa Indonesia (1–3 kalimat) agar reviewer bisa cek ulang
+- explanationId: penjelasan singkat Bahasa Indonesia (1–3 kalimat) merujuk bukti transcript/layout/task
 - multi-select: beberapa opsi dipisah "; "
 - free-text: isi rating dengan teks penjelasan lengkap (Bahasa Indonesia)
 
 Khusus deep_research_triggered: Yes | No.
-Catatan resmi: jika No, itu BUKAN otomatis fail.
+Catatan resmi: jika No, itu BUKAN otomatis fail — field lain tetap dinilai adil.
 
 Urutan form Outlier: DR triggered → (1)–(15) → Quality check → Grammar check → (16)–(24) → (26)/(26.b) → (30).
 Khusus (15) Response Depth: skala 1–5 (1=Very Poor, 3=Adequate, 5=Excellent).
@@ -132,19 +138,21 @@ Field Review 1:
 - deep_research_triggered: Yes | No
 - deep_research_note_id: penjelasan singkat ID
 ${review1Spec}
-- quality_check_accurate: Yes | No — "Are you sure all your answers are accurate and based on the video?"
-- grammar_check: Yes | No — spelling/grammar perfect, no AI-generated typos
+- quality_check_accurate: Yes | No — Yes hanya jika grounded & tidak kontradiksi lintas field
+- grammar_check: Yes | No — ejaan/grammar bersih
 
 ## OUTPUT REVIEW 2 — Workflow Q1–Q22
-Jawab SEMUA Q1–Q22 deskriptif Bahasa Indonesia (jangan semua unknown jika ada bukti di transcript).
+Jawab SEMUA Q1–Q22 deskriptif Bahasa Indonesia (jangan semua unknown jika ada bukti).
+Setiap jawaban wajib selaras dengan rating Review 1 terkait (lihat matriks).
 ${review2Spec}
 
 Aturan penting:
-1. Grounded pada Task Variables + Layout Summary + Transcript. Jangan mengarang bukti recording yang tidak ada.
-2. Jika Layout Summary ada: nilai kepatuhan turn-script (While Turns 1–N + After Draft) terhadap ucapan user di transcript. Catat turn yang hilang / diubah / urutan beda.
-3. Q12/Q21 Review2 dan field yang butuh video murni boleh menyatakan perlu cek recording manual.
-4. Deep Research requested vs triggered harus dibedakan.
-5. Review1 rating harus pakai opsi resmi di atas.
+1. Grounded pada Task Variables + Layout Summary + Transcript (+ notes). Jangan mengarang bukti recording.
+2. Layout Summary: bandingkan While Turns + After Draft vs transcript; sebutkan turn yang hilang/beda.
+3. Review1 ↔ Review2 HARUS konsisten (DR, goal, P1/P2/P3, multimodal/visual, kepuasan).
+4. Q12/Q21 dan field video-murni boleh "perlu cek recording" jika notes kosong.
+5. Q10 = DR requested; Q11 + R1 DR = triggered — jangan dicampur.
+6. Rating Review1 pakai opsi resmi; explanationId spesifik (kutip frasa / nomor while turn bila relevan).
 
 JSON WAJIB:
 {
@@ -373,6 +381,27 @@ export async function reviewWithSumopod(
     review2 = normalizeReview2(parsed);
   }
 
+  const coherence = findCoherenceIssues(
+    req.context,
+    review1,
+    review2.answers,
+  );
+  if (coherence.length > 0) {
+    text = await callModel(
+      client,
+      model,
+      `${prompt}
+
+PERBAIKAN KOHERENSI (wajib perbaiki sebelum output final):
+${coherence.map((c, i) => `${i + 1}. ${c}`).join("\n")}
+
+Kembalikan JSON review1+review2 lengkap yang sudah saling selaras.`,
+    );
+    parsed = extractJsonObject(text);
+    review1 = normalizeReview1(parsed);
+    review2 = normalizeReview2(parsed);
+  }
+
   const formatted1 = formatReview1(review1);
   const formatted2 = formatReview2(review2.summary, review2.answers);
 
@@ -387,6 +416,8 @@ export async function reviewWithSumopod(
       tagPath: [req.context.p1, req.context.p2, req.context.p3]
         .filter(Boolean)
         .join(" | "),
+      coherenceChecked: true,
+      coherenceIssuesFixed: coherence,
     },
   };
 }

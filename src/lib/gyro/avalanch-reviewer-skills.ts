@@ -19,6 +19,10 @@ export const GYRO_REVIEWER_SKILLS: string[] = [
   "Recording review: flag black screens, audio/loading failures, incomplete capture when notes or clear transcript markers support it.",
   "Write reviewer answers in clear Bahasa Indonesia (Indonesian reviewer) unless the field label itself must stay English.",
   "Never fill all answers with unknown when transcript evidence exists.",
+  "Cross-link Review1 ↔ Review2: deepResearchTriggered↔Q11; captions↔Q15; conversation_flow↔Q16; goal/satisfaction↔Q3/Q19/Q22; visual mode consistent with multimodal.",
+  "Layout Summary While Turns + After Draft must be graded against transcript and reflected in Q5/Q6/Q8/Q9/Q20.",
+  "Internal Review1 coherence: (1)↔(1.b); Major goal issues cannot pair with Very satisfied; Excellent depth cannot pair with Major truthfulness issues.",
+  "Prefer one coherent narrative across summary and all fields over isolated optimistic ratings.",
 ];
 
 export function formatGyroSkillsForPrompt(): string {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { chatWithGyroReviewer } from "@/lib/gyro/sumopod-chat";
 import { readGyroMemory } from "@/lib/gyro/store";
 import type {
-  GyroAnswer,
+  ChatFormTarget,
   GyroReviewerNotes,
   GyroReviewResult,
   GyroTaskContext,
@@ -20,6 +20,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Pesan kosong." }, { status: 400 });
     }
 
+    const targetRaw = String(body.target || body.formTarget || "review2");
+    const target: ChatFormTarget =
+      targetRaw === "review1" ? "review1" : "review2";
+
     const context = (body.context || {}) as GyroTaskContext;
     const notes = (body.notes || {}) as GyroReviewerNotes;
     const result = (body.result || null) as GyroReviewResult | null;
@@ -36,7 +40,6 @@ export async function POST(request: Request) {
           }))
       : [];
 
-    // Ensure required nested defaults for chat
     const safeContext: GyroTaskContext = {
       ...context,
       taskLanguage: "id",
@@ -74,23 +77,15 @@ export async function POST(request: Request) {
       corrections: notes.corrections || "",
     };
 
-    const safeResult =
-      result && Array.isArray(result.answers)
-        ? {
-            summary: String(result.summary || ""),
-            answers: result.answers as GyroAnswer[],
-            json: result.json || {},
-          }
-        : null;
-
     const memory = await readGyroMemory();
     const out = await chatWithGyroReviewer({
       message: message.slice(0, 4000),
       history,
       context: safeContext,
       notes: safeNotes,
-      result: safeResult,
+      result,
       memory,
+      target,
     });
 
     return NextResponse.json({

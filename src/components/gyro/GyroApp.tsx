@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { buildContextFromPaste } from "@/lib/gyro/parse-task-paste";
 import {
+  formatReview1Text,
+  type Review1Result,
+} from "@/lib/gyro/review1-form";
+import {
   GYRO_ISSUE_OPTIONS,
+  type ChatFormTarget,
   type GyroAnswer,
   type GyroIssueKey,
   type GyroReviewResult,
@@ -14,6 +19,16 @@ import {
 
 type OutputTab = "review1" | "review2" | "json";
 type ChatMsg = { role: "user" | "assistant"; content: string };
+type PendingUpdate =
+  | {
+      target: "review2";
+      summary: string;
+      answers: GyroAnswer[];
+    }
+  | {
+      target: "review1";
+      review1: Review1Result;
+    };
 
 const DEMO_TASK_PASTE = `📌 Your Task Variables
 Review and internalize the following task-specific variables before starting your session.
@@ -131,10 +146,10 @@ export default function GyroApp() {
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
-  const [pendingUpdate, setPendingUpdate] = useState<{
-    summary: string;
-    answers: GyroAnswer[];
-  } | null>(null);
+  const [chatTarget, setChatTarget] = useState<ChatFormTarget>("review1");
+  const [pendingUpdate, setPendingUpdate] = useState<PendingUpdate | null>(
+    null,
+  );
 
   const context = useMemo(
     () => buildContextFromPaste(taskPaste, transcript, "v1", layoutSummary),
@@ -239,6 +254,7 @@ export default function GyroApp() {
     setChatError(null);
     setChatLoading(true);
     setChatInput("");
+    setPendingUpdate(null);
     setChatMessages((prev) => [...prev, { role: "user", content: message }]);
     try {
       const res = await fetch("/api/gyro/chat", {
@@ -250,6 +266,7 @@ export default function GyroApp() {
           context,
           notes,
           result,
+          target: chatTarget,
         }),
       });
       const data = await res.json();
@@ -258,9 +275,30 @@ export default function GyroApp() {
         ...prev,
         { role: "assistant", content: String(data.reply || "") },
       ]);
-      if (data.proposeUpdate && Array.isArray(data.answers) && data.answers.length) {
+      if (!data.proposeUpdate) return;
+
+      if (
+        chatTarget === "review1" &&
+        data.review1 &&
+        Array.isArray(data.review1.fields)
+      ) {
         setPendingUpdate({
-          summary: String(data.summary || result?.summary || ""),
+          target: "review1",
+          review1: data.review1 as Review1Result,
+        });
+        return;
+      }
+
+      if (
+        chatTarget === "review2" &&
+        Array.isArray(data.answers) &&
+        data.answers.length
+      ) {
+        setPendingUpdate({
+          target: "review2",
+          summary: String(
+            data.summary || result?.review2?.summary || result?.summary || "",
+          ),
           answers: data.answers as GyroAnswer[],
         });
       }
@@ -272,35 +310,60 @@ export default function GyroApp() {
   }
 
   function applyPendingUpdate() {
-    if (!pendingUpdate) return;
+    if (!pendingUpdate || !result) return;
+
+    if (pendingUpdate.target === "review1") {
+      const review1 = {
+        ...pendingUpdate.review1,
+        formatted: formatReview1Text(pendingUpdate.review1),
+      };
+      setResult({
+        ...result,
+        review1,
+        json: {
+          ...result.json,
+          review1,
+          updatedViaChat: "review1",
+        },
+      });
+      setPendingUpdate(null);
+      setTab("review1");
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Perubahan sudah diterapkan ke Review 1 · Form saja.",
+        },
+      ]);
+      return;
+    }
+
     const { answers, summary } = pendingUpdate;
+    const formatted = [
+      "=== OUTPUT REVIEW 2 — Workflow Q1–Q22 ===",
+      "",
+      "Summary:",
+      summary,
+      "",
+      ...answers.flatMap((a) => [`${a.id}. ${a.label}`, a.value, ""]),
+    ].join("\n");
     const json: Record<string, unknown> = {
-      ...(result?.json || {}),
+      ...(result.json || {}),
       rubricVersion: "v1",
       tagPath,
       summary,
       answers,
-      updatedViaChat: true,
+      review2: { summary, answers },
+      updatedViaChat: "review2",
     };
     for (const a of answers) json[a.id] = a.value;
     setResult({
-      ...(result || { summary: "", answers: [], json: {} }),
+      ...result,
       summary,
       answers,
       json,
-      review2: {
-        summary,
-        answers,
-        formatted: [
-          "=== OUTPUT REVIEW 2 — Workflow Q1–Q22 ===",
-          "",
-          "Summary:",
-          summary,
-          "",
-          ...answers.flatMap((a) => [`${a.id}. ${a.label}`, a.value, ""]),
-        ].join("\n"),
-      },
-      review1: result?.review1,
+      review2: { summary, answers, formatted },
+      review1: result.review1,
     });
     setPendingUpdate(null);
     setTab("review2");
@@ -308,7 +371,7 @@ export default function GyroApp() {
       ...prev,
       {
         role: "assistant",
-        content: "Perubahan sudah diterapkan ke Answers / Summary.",
+        content: "Perubahan sudah diterapkan ke Review 2 · Q1–Q22 saja.",
       },
     ]);
   }
@@ -526,7 +589,13 @@ export default function GyroApp() {
               <button
                 key={id}
                 type="button"
-                onClick={() => setTab(id)}
+                onClick={() => {
+                  setTab(id);
+                  if (id === "review1" || id === "review2") {
+                    setChatTarget(id);
+                    setPendingUpdate(null);
+                  }
+                }}
                 className={`flex-1 rounded-md px-3 py-1.5 text-sm ${
                   tab === id
                     ? "bg-zinc-800 text-cyan-300"
@@ -641,7 +710,7 @@ export default function GyroApp() {
                 Chat dengan AI
               </h2>
               <p className="text-[11px] text-zinc-500">
-                Koreksi jawaban live — lalu Terapkan ke Answers bila setuju.
+                Pilih form dulu — koreksi AI hanya mengubah form itu.
               </p>
             </div>
             {pendingUpdate && (
@@ -651,7 +720,10 @@ export default function GyroApp() {
                   onClick={applyPendingUpdate}
                   className="rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-zinc-950"
                 >
-                  Terapkan ke Answers
+                  Terapkan ke{" "}
+                  {pendingUpdate.target === "review1"
+                    ? "Review 1"
+                    : "Review 2"}
                 </button>
                 <button
                   type="button"
@@ -664,16 +736,45 @@ export default function GyroApp() {
             )}
           </div>
 
+          <div className="mb-3 flex flex-wrap gap-2">
+            {(
+              [
+                ["review1", "Review 1 · Form"],
+                ["review2", "Review 2 · Q1–Q22"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setChatTarget(id);
+                  setPendingUpdate(null);
+                }}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                  chatTarget === id
+                    ? "bg-cyan-500/20 text-cyan-200 ring-1 ring-cyan-500/50"
+                    : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Target: {label}
+              </button>
+            ))}
+          </div>
+
           {pendingUpdate && (
             <p className="mb-3 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100">
-              AI mengusulkan update {pendingUpdate.answers.length} jawaban.
+              {pendingUpdate.target === "review1"
+                ? `AI mengusulkan update Review 1 (${pendingUpdate.review1.fields.length} field). Review 2 tidak diubah.`
+                : `AI mengusulkan update Review 2 (${pendingUpdate.answers.length} jawaban). Review 1 tidak diubah.`}
             </p>
           )}
 
           <div className="mb-3 max-h-[240px] space-y-2 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-3">
             {chatMessages.length === 0 && (
               <p className="text-sm text-zinc-500">
-                Contoh: &quot;Q11 No karena DR tidak triggered&quot;
+                {chatTarget === "review1"
+                  ? 'Contoh: "Isi (1.b) bahwa UI jelas, sesi voice-only"'
+                  : 'Contoh: "Q11 No karena DR tidak triggered"'}
               </p>
             )}
             {chatMessages.map((m, i) => (
@@ -711,7 +812,11 @@ export default function GyroApp() {
               className={`${fieldClass()} min-h-[64px] flex-1`}
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Tanya / koreksi AI tentang task ini…"
+              placeholder={
+                chatTarget === "review1"
+                  ? "Koreksi Review 1 saja…"
+                  : "Koreksi Review 2 (Q1–Q22) saja…"
+              }
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();

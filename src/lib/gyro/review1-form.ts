@@ -349,3 +349,36 @@ export function emptyReview1(): Review1Result {
     grammarCheck: "Yes",
   };
 }
+
+/** Client-safe formatter (no Node/fs imports). */
+export function formatReview1Text(r: Review1Result): string {
+  const lines: string[] = [];
+  lines.push("=== OUTPUT REVIEW 1 — Product Quality Form ===");
+  lines.push("");
+  lines.push("Deep research was triggered? (jika No, BUKAN otomatis fail)");
+  lines.push(`Jawaban: ${r.deepResearchTriggered}`);
+  lines.push(`Penjelasan: ${r.deepResearchNoteId}`);
+  lines.push("");
+  for (const f of r.fields) {
+    lines.push(f.title);
+    if (f.promptEn) lines.push(`Prompt: ${f.promptEn}`);
+    lines.push(`Arti: ${f.explainId}`);
+    if (f.id === "response_depth") {
+      lines.push("Skala: 1 Very Poor / 3 Adequate / 5 Excellent");
+    } else {
+      lines.push(`Opsi resmi: ${f.options.join(" / ")}`);
+    }
+    lines.push(`Pilihan: ${f.rating}`);
+    lines.push(`Penjelasan ID: ${f.explanationId}`);
+    lines.push("");
+    if (f.id === "response_depth") {
+      lines.push("Quality check 1 — jawaban akurat berbasis video/transcript?");
+      lines.push(`Jawaban: ${r.qualityCheckAccurate}`);
+      lines.push("");
+      lines.push("Grammar check 1 — ejaan/grammar bersih?");
+      lines.push(`Jawaban: ${r.grammarCheck}`);
+      lines.push("");
+    }
+  }
+  return lines.join("\n");
+}

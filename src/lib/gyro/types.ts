@@ -1,5 +1,6 @@
 export type TriState = "yes" | "no" | "unknown";
 export type RubricVersion = "v1" | "v2";
+export type ChatFormTarget = "review1" | "review2";
 export type MultimodalState = TriState;
 export type SceneRequired = TriState;
 export type SceneKind = "" | "screen_share" | "camera" | "other";
