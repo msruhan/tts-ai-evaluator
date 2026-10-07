@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:factcheck": "node --experimental-strip-types --no-warnings --test src/lib/factcheck/__tests__/*.test.ts"
+    "test:factcheck": "node --experimental-strip-types --no-warnings --test src/lib/factcheck/__tests__/*.test.ts",
+    "test:auth": "node --experimental-strip-types --no-warnings --test src/lib/__tests__/auth.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
