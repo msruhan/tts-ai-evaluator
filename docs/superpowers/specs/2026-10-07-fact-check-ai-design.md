@@ -27,7 +27,7 @@
 | Topik | Keputusan |
 |-------|-----------|
 | Sumber bukti | Sports API resmi (MLB, ESPN, NHL) dulu, lalu **Tavily** Search API |
-| LLM | Gemini via Sumopod (konfigurasi yang sudah ada) |
+| LLM | **Codex CLI** (`codex exec`, login ChatGPT user) — **hanya jalan lokal** (`npm run dev`), tidak di Vercel |
 | Input | 4 field terpisah + tombol "Tempel & pecah otomatis" |
 | Bahasa output | Narasi **English** (untuk form) + **Bahasa Indonesia** (pemahaman) |
 | Penyimpanan | **Tidak ada** — hasil hanya tampil di layar |
@@ -56,7 +56,7 @@
 | File | Tanggung jawab |
 |------|----------------|
 | `types.ts` | `FactCheckInput`, `Claim`, `ClaimVerdict`, `Source`, `LinkCheck`, `AiResearchResult`, `ManualResearch`, `ComparisonResult`, `FinalReview`, `ProgressEvent` |
-| `llm.ts` | Client OpenAI→Sumopod (pakai `getSumopodModel`, base URL, API key yang sama) + helper JSON-schema call dengan 1x retry bila JSON rusak |
+| `codex.ts` | Wrapper Codex CLI: `runCodexJson(prompt, schema)` → tulis schema ke file temp, spawn `codex exec` (prompt via stdin), baca hasil `-o`, parse JSON, 1x retry bila gagal/JSON rusak |
 | `parse-task.ts` | Regex berbasis heading ("User Query", "Response", "Target Sentence", "Query Date"); fallback ke LLM bila gagal |
 | `extract-claims.ts` | Langkah 1: pecah Target Sentence jadi klaim atomik (dilengkapi konteks dari Full Response/User Query), flag subjektif, flag no-claims, query Tavily per klaim, dan **entity hints** untuk sports API (sport, league, tim, pemain, tanggal event) |
 | `sports-apis.ts` | Adapter MLB / ESPN / NHL: susun URL dari entity hints, cari event by tanggal+tim, ambil boxscore/summary, **pangkas JSON** ke bagian relevan |
@@ -70,8 +70,26 @@
 
 ### 4.4 Konfigurasi
 
-- Env baru: `TAVILY_API_KEY` (lokal `.env.local` + Vercel).
-- Env lama dipakai ulang: `SUMOPOD_API_KEY`, `SUMOPOD_MODEL`, `SUMOPOD_BASE_URL`.
+- `TAVILY_API_KEY` — wajib.
+- `CODEX_BIN` — opsional; default `codex` di PATH, fallback `/Applications/ChatGPT.app/Contents/Resources/codex`.
+- `CODEX_MODEL` — opsional; kosong = pakai model di `~/.codex/config.toml`.
+- `CODEX_REASONING_EFFORT` — opsional; default `low` (≈12 dtk per panggilan pada uji coba).
+- Sumopod **tidak** dipakai halaman ini.
+
+### 4.5 Pemanggilan Codex CLI
+
+```
+codex exec --ephemeral --skip-git-repo-check -s read-only \
+  -C <tmpdir kosong> --output-schema <schema.json> -o <out.json> \
+  [-m $CODEX_MODEL] -c model_reasoning_effort="<effort>" -
+```
+
+- Prompt dikirim via stdin; prompt menegaskan "jangan menjalankan command / tool, jawab hanya JSON sesuai schema".
+- Dijalankan di direktori temp kosong + sandbox `read-only` supaya agen tidak menyentuh repo.
+- Timeout per panggilan 120 dtk; proses di-kill bila lewat.
+- Auth memakai `~/.codex/auth.json` (login ChatGPT) — tidak ada API key di project.
+- Codex **tidak** dipakai untuk browsing; semua bukti tetap dari sports API + Tavily + verifikasi server (supaya link terkontrol dan bisa diverifikasi).
+- Pengecekan Codex tersedia (binary ada & login) dilakukan saat request; bila tidak, event `error` dengan instruksi.
 
 ## 5. Alur riset AI
 
@@ -189,7 +207,9 @@ Light mode, Tailwind, gaya konsisten dengan halaman Gyro/Handbook.
 
 | Situasi | Perilaku |
 |---------|----------|
-| `TAVILY_API_KEY` / `SUMOPOD_API_KEY` belum diset | Event `error` dengan pesan jelas; proses tidak berjalan |
+| `TAVILY_API_KEY` belum diset | Event `error` dengan pesan jelas; proses tidak berjalan |
+| Codex binary tidak ditemukan / belum login / berjalan di Vercel | Event `error`: "Fact Check hanya jalan lokal dengan Codex CLI yang sudah login" |
+| Codex timeout (>120 dtk) | Kill proses, retry 1x, lalu event `error` |
 | Sports API tidak menemukan event / error | Lanjut ke Tavily, tanpa error ke user |
 | Tavily error / kuota habis | Event `error` bila tak ada sumber lain; bila ada sumber sports API, lanjut |
 | Semua URL gagal verifikasi | Label tetap diberikan (umumnya Unsupported); narasi menyebut sumber tidak bisa dibuka; `Sources:` tanpa link palsu |
@@ -199,6 +219,7 @@ Light mode, Tailwind, gaya konsisten dengan halaman Gyro/Handbook.
 
 ## 13. Testing
 
+- Runner: `node --test` (Node 22 type stripping) lewat script `npm run test:factcheck`; modul yang di-unit-test hanya boleh `import type` dari modul lain (tanpa import runtime relatif).
 - **Unit ringan:** parser tempel-dan-pecah, pemangkas JSON sports API (pakai sampel MLB boxscore & ESPN golf scoreboard), klasifikasi tanggal sumber vs Query Date, perakit blok `Sources:` (membuang URL tak terverifikasi).
 - **Manual end-to-end:**
   1. Rayo Vallecano xG 1.33 (laga 15 Sep 2026, Query Date 2026-09-23) — jalur Tavily.
@@ -212,3 +233,4 @@ Light mode, Tailwind, gaya konsisten dengan halaman Gyro/Handbook.
 - Agen tool-calling bebas (LLM mencari berulang sendiri).
 - Headless browser untuk situs yang memblokir fetch biasa.
 - Adapter sports API selain MLB / ESPN / NHL.
+- Deploy fungsional ke Vercel (halaman tetap ter-build, tapi API mengembalikan error "hanya lokal").
