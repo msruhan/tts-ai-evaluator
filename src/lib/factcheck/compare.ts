@@ -5,7 +5,7 @@ import {
   formatSourcesForPrompt,
   formatTaskBlock,
   LABEL_RULES,
-  NARRATIVE_RULES,
+  narrativeRules,
   QUERY_DATE_RULES,
   resolveSourceIds,
 } from "./narrative";
@@ -171,7 +171,7 @@ How to compare:
 - In analysis and notesForUser, refer to sources by site name (e.g. "FotMob", "ESPN API"), never by IDs like [S1].
 - confidence: "tinggi" when both researches agree and strong sources exist; "sedang" when they agree with weaker sources or a disagreement was clearly resolved; "rendah" when a real conflict remains or evidence is thin.
 
-${NARRATIVE_RULES}
+${narrativeRules()}
 
 Output: comparisons, label (final recommended), confidence, citedSources (IDs used in the final narrative, most important first), narrativeEn (final English narrative), narrativeId (same substance in Bahasa Indonesia), notesForUser (Bahasa Indonesia, 2–5 short sentences: key differences, problematic sources, and concrete advice for the rater; not part of the copied review).`;
 

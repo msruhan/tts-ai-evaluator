@@ -14,12 +14,34 @@ export const QUERY_DATE_RULES = (queryDate: string) => `Query date rules (query 
 - unknown_date sources are usable only when their content clearly describes events on or before ${queryDate}.
 - Subjective wording ("the greatest", "unmatched", "the only hurdle") is not a plain fact: check whether reputable sources genuinely support or dispute that characterization.`;
 
-export const NARRATIVE_RULES = `Narrative style (both languages, same substance):
-- One or two flowing paragraphs, 80–180 words, no bullet points, no headings, no markdown, no URLs (the server appends a Sources list).
-- Fixed order: (1) opening — what claim(s) were checked and how many verifiable claims the sentence contains; (2) evidence — which sources were consulted by name (e.g. "ESPN's official match summary", "FotMob match stats") and what they say, stating that they reflect the situation as of the query date; (3) reasoning — why that evidence leads to the label, including the subjective part if any; (4) conclusion — end with the label in bold-free plain text, e.g. "Therefore, the label is Accurate."
-- English opening pattern: "I fact-checked the claim that ..." (one claim) or "I fact-checked the claims that ..." (several) — never write "claim(s)". Indonesian opening pattern: "Saya telah melakukan pengecekan terhadap klaim ...". Indonesian conclusion: "Oleh karena itu, labelnya adalah <Label>." (keep the English label word).
-- Disputed: name which source says what. Unsupported: say where you searched and why no reliable evidence was found. No Claims present: explain why the sentence has no factual claim.
-- Only mention sources that are in the provided verified list. Never invent statistics or sources.`;
+const OPENINGS_EN = ["I fact-checked", "I checked", "I reviewed", "I looked into", "I verified", "I went through"];
+const OPENINGS_ID = [
+  "Saya telah melakukan pengecekan terhadap",
+  "Saya mengecek",
+  "Saya menelusuri",
+  "Saya memeriksa",
+  "Saya sudah mengecek",
+];
+
+function pick<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+export function narrativeRules() {
+  const openEn = pick(OPENINGS_EN);
+  const openId = pick(OPENINGS_ID);
+  return `Narrative style (both languages, same substance):
+- Write it like a person telling a colleague how they actually traced the facts, step by step. Everyday, natural language; relaxed but still professional. It must not sound like AI.
+- Length 170–300 words, split into 2–4 short paragraphs. No bullet points, no headings, no markdown, no URLs (the server appends a Sources list).
+- Opening: start with "${openEn} ..." in English and "${openId} ..." in Indonesian, then say in plain words what the sentence claims and how many verifiable claims it contains. Write "the claim that" (one) or "the claims that" (several), never "claim(s)".
+- Then walk through the checking in order using ordinal steps — English "First, ...", "Second, ...", "Third, ...", "Finally, ..."; Indonesian "Pertama, ...", "Kedua, ...", "Ketiga, ...", "Terakhir, ...". Each step = one source (or one claim) named by site, e.g. "First, I checked the claim about the final score on ESPN's official match summary..." / "Pertama, saya mengecek klaim soal skor akhir di ringkasan pertandingan resmi ESPN...". Say what you looked at on that page (box score, match stats, article, standings table), what it actually shows (concrete numbers/names), and whether that matches the sentence. Mention that the source is dated on or before the query date when relevant.
+- After the steps, explain briefly in your own words why this adds up to the label (including the subjective wording, if any), then end with exactly "Therefore, the label is <Label>." / "Oleh karena itu, labelnya adalah <Label>." (keep the English label word).
+- Sound human: use contractions in English ("didn't", "it's"), vary sentence length, use light connectors ("then", "after that", "to double-check", "lalu", "setelah itu", "untuk memastikan"). Avoid stiff AI phrasing: "Furthermore", "Moreover", "Notably", "It is worth noting", "delve", "comprehensive", "In conclusion", em dashes, and Indonesian "Adapun", "Selain itu, perlu dicatat", "Dengan demikian dapat disimpulkan".
+- Write as if you browsed the sites yourself: never mention the pipeline or prompt ("provided sources", "verified list", "the list", "JSON", "API response", "header field", "keyMatch"). Call the date "the query date" / "tanggal query" (not "tanggal kueri").
+- The Indonesian version is natural everyday Indonesian (not a word-for-word translation, not overly formal), with the same steps and facts.
+- Disputed: say which source says what. Unsupported: describe where you looked and why nothing reliable turned up. No Claims present: explain why the sentence has no factual claim (no ordinal steps needed).
+- Only mention sources that are in the provided verified list. Never invent statistics, pages, or sources.`;
+}
 
 export function formatTaskBlock(input: FactCheckInput) {
   return `Query date: ${input.queryDate}

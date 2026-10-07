@@ -3,7 +3,7 @@ import {
   formatSourcesForPrompt,
   formatTaskBlock,
   LABEL_RULES,
-  NARRATIVE_RULES,
+  narrativeRules,
   QUERY_DATE_RULES,
   resolveSourceIds,
 } from "./narrative";
@@ -98,7 +98,7 @@ ${LABEL_RULES}
 
 ${QUERY_DATE_RULES(input.queryDate)}
 
-${NARRATIVE_RULES}
+${narrativeRules()}
 
 Output:
 - verdicts: one per claim ID with its own label, the supporting / contradicting source IDs, and a one-sentence note (English).
