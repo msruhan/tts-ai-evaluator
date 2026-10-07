@@ -3,6 +3,7 @@ import { constants as fsConstants } from "node:fs";
 import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runSumopodOnce } from "./sumopod-json";
 
 const CHATGPT_BUNDLED_CODEX =
   "/Applications/ChatGPT.app/Contents/Resources/codex";
@@ -130,25 +131,63 @@ function parseJsonLoose(text: string): unknown {
   }
 }
 
+type Provider = "codex" | "sumopod" | "auto";
+
+function readProvider(): Provider {
+  const value = process.env.FACTCHECK_LLM?.trim().toLowerCase();
+  return value === "sumopod" || value === "auto" ? value : "codex";
+}
+
+async function withRetry<T>(run: () => Promise<string>): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return parseJsonLoose(await run()) as T;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
+function message(err: unknown) {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export async function runCodexJson<T>(
   prompt: string,
   schema: object,
   opts: RunOptions = {},
 ): Promise<T> {
-  assertLocalRuntime();
-  const bin = await resolveCodexBin();
+  const provider = readProvider();
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  const label = opts.label ? ` (${opts.label})` : "";
+  const viaSumopod = () => withRetry<T>(() => runSumopodOnce(prompt, schema, timeoutMs));
+
+  if (provider === "sumopod") {
     try {
-      const raw = await runOnce(bin, prompt, schema, timeoutMs);
-      return parseJsonLoose(raw) as T;
+      return await viaSumopod();
     } catch (err) {
-      lastError = err;
+      throw new Error(`Panggilan Sumopod gagal${label}: ${message(err)}`);
     }
   }
-  const label = opts.label ? ` (${opts.label})` : "";
-  throw new Error(
-    `Panggilan Codex gagal${label}: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
-  );
+
+  let codexError: unknown;
+  try {
+    assertLocalRuntime();
+    const bin = await resolveCodexBin();
+    return await withRetry<T>(() => runOnce(bin, prompt, schema, timeoutMs));
+  } catch (err) {
+    codexError = err;
+  }
+  if (provider === "auto") {
+    try {
+      return await viaSumopod();
+    } catch (err) {
+      throw new Error(
+        `Panggilan AI gagal${label}. Codex: ${message(codexError)} · Sumopod: ${message(err)}`,
+      );
+    }
+  }
+  throw new Error(`Panggilan Codex gagal${label}: ${message(codexError)}`);
 }
