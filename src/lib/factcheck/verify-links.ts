@@ -23,24 +23,41 @@ function failed(
   return { url, status, httpStatus, detail, keyMatch: "no_match", matchedValues: [], excerpt: "" };
 }
 
+function fetchPage(url: string) {
+  return fetch(url, {
+    redirect: "follow",
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+    headers: {
+      "User-Agent": USER_AGENT,
+      Accept: "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
+    },
+  });
+}
+
+function isTimeout(err: unknown) {
+  const name = err instanceof Error ? err.name : "";
+  return name === "TimeoutError" || name === "AbortError";
+}
+
+function networkReason(err: unknown): string {
+  const cause = (err as { cause?: { code?: string; message?: string } })?.cause;
+  return cause?.code || cause?.message || (err instanceof Error ? err.message : String(err));
+}
+
 export async function checkLink(url: string, keyValues: string[]): Promise<LinkCheck> {
   let res: Response;
   try {
-    res = await fetch(url, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: {
-        "User-Agent": USER_AGENT,
-        Accept: "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-    });
-  } catch (err) {
-    const name = err instanceof Error ? err.name : "";
-    if (name === "TimeoutError" || name === "AbortError") {
-      return failed(url, "timeout", `timeout ${TIMEOUT_MS / 1000} dtk`);
+    try {
+      res = await fetchPage(url);
+    } catch (err) {
+      if (isTimeout(err)) throw err;
+      await new Promise((r) => setTimeout(r, 800));
+      res = await fetchPage(url);
     }
-    return failed(url, "http_error", `gagal terhubung: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (err) {
+    if (isTimeout(err)) return failed(url, "timeout", `timeout ${TIMEOUT_MS / 1000} dtk`);
+    return failed(url, "http_error", `gagal terhubung (${networkReason(err)})`);
   }
 
   if (res.status !== 200) {

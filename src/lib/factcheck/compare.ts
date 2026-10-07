@@ -168,6 +168,7 @@ How to compare:
 - For each claim ID: manualVerdict = the rater's verdict for that claim inferred from the notes/label ("not addressed" if the notes do not cover it); agreement = agree | disagree | ai_only (only AI covered it) | manual_only (only the rater found something relevant).
 - When they disagree, explain in analysis (Bahasa Indonesia) which side is better supported and why: official/primary vs secondary source, published before vs after the query date, whether the key value really appears on the page (keyMatch), and whether the source actually opened.
 - Rater URLs that FAILED, are after_query_date, or do not contain the claim must not support the final label; mention them in notesForUser.
+- In analysis and notesForUser, refer to sources by site name (e.g. "FotMob", "ESPN API"), never by IDs like [S1].
 - confidence: "tinggi" when both researches agree and strong sources exist; "sedang" when they agree with weaker sources or a disagreement was clearly resolved; "rendah" when a real conflict remains or evidence is thin.
 
 ${NARRATIVE_RULES}

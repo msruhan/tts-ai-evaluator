@@ -4,6 +4,7 @@ import { normalizeUrlKey } from "./sources-block";
 import { fetchSportsEvidence } from "./sports-apis";
 import { tavilySearch } from "./tavily";
 import type {
+  Claim,
   ClaimExtraction,
   Emit,
   FactCheckInput,
@@ -34,6 +35,15 @@ function mergeCandidates(list: SourceCandidate[]): SourceCandidate[] {
     }
   }
   return [...byKey.values()];
+}
+
+/** A source counts as evidence only if it contains the claim's decisive values (numbers when present). */
+export function supportsClaim(source: VerifiedSource, claim: Claim): boolean {
+  if (source.dateStatus === "after_query_date") return false;
+  const matched = source.check.matchedValues;
+  const numeric = claim.keyValues.filter((v) => /\d/.test(v));
+  if (numeric.length) return numeric.some((v) => matched.includes(v));
+  return source.check.keyMatch !== "no_match" || claim.keyValues.length === 0;
 }
 
 function rank(c: SourceCandidate): number {
@@ -125,12 +135,10 @@ export async function gatherEvidence(
     message: `Memverifikasi ${candidates.length} URL satu per satu…`,
   });
 
+  const supporting = (verified: VerifiedSource[], claim: Claim) =>
+    verified.filter((v) => v.claimIds.includes(claim.id) && supportsClaim(v, claim));
   const covered = (verified: VerifiedSource[]) =>
-    claimIds.every(
-      (id) =>
-        verified.filter((v) => v.claimIds.includes(id) && v.dateStatus !== "after_query_date")
-          .length >= SOURCES_PER_CLAIM,
-    );
+    extraction.claims.every((c) => supporting(verified, c).length >= SOURCES_PER_CLAIM);
   const first = await verifyLinksSequential(candidates, keyValuesByClaim, {
     emit,
     stopWhen: covered,
@@ -138,9 +146,7 @@ export async function gatherEvidence(
   let verified = withPageDate(first.verified, input.queryDate);
   const rejected = [...first.rejected];
 
-  const uncovered = extraction.claims.filter(
-    (c) => !verified.some((v) => v.claimIds.includes(c.id) && v.dateStatus !== "after_query_date"),
-  );
+  const uncovered = extraction.claims.filter((c) => supporting(verified, c).length === 0);
   if (uncovered.length) {
     emit({
       type: "stage",

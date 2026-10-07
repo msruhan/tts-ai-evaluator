@@ -17,7 +17,7 @@ export const QUERY_DATE_RULES = (queryDate: string) => `Query date rules (query 
 export const NARRATIVE_RULES = `Narrative style (both languages, same substance):
 - One or two flowing paragraphs, 80–180 words, no bullet points, no headings, no markdown, no URLs (the server appends a Sources list).
 - Fixed order: (1) opening — what claim(s) were checked and how many verifiable claims the sentence contains; (2) evidence — which sources were consulted by name (e.g. "ESPN's official match summary", "FotMob match stats") and what they say, stating that they reflect the situation as of the query date; (3) reasoning — why that evidence leads to the label, including the subjective part if any; (4) conclusion — end with the label in bold-free plain text, e.g. "Therefore, the label is Accurate."
-- English opening pattern: "I fact-checked the claim(s) that ..." — Indonesian opening pattern: "Saya telah melakukan pengecekan terhadap klaim ...". Indonesian conclusion: "Oleh karena itu, labelnya adalah <Label>." (keep the English label word).
+- English opening pattern: "I fact-checked the claim that ..." (one claim) or "I fact-checked the claims that ..." (several) — never write "claim(s)". Indonesian opening pattern: "Saya telah melakukan pengecekan terhadap klaim ...". Indonesian conclusion: "Oleh karena itu, labelnya adalah <Label>." (keep the English label word).
 - Disputed: name which source says what. Unsupported: say where you searched and why no reliable evidence was found. No Claims present: explain why the sentence has no factual claim.
 - Only mention sources that are in the provided verified list. Never invent statistics or sources.`;
 
