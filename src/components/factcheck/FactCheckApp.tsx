@@ -18,6 +18,7 @@ import {
   type LinkRow,
   type StageRow,
 } from "./parts";
+import ResponseField from "./ResponseField";
 import { streamNdjson } from "./stream";
 
 type RunState<T> = {
@@ -264,10 +265,12 @@ export default function FactCheckApp() {
                 <span className="mb-1 block font-medium text-slate-700">User Query</span>
                 <textarea value={input.userQuery} onChange={(e) => set("userQuery")(e.target.value)} rows={2} className={fieldCls} />
               </label>
-              <label className="block text-sm">
-                <span className="mb-1 block font-medium text-slate-700">Full Response</span>
-                <textarea value={input.fullResponse} onChange={(e) => set("fullResponse")(e.target.value)} rows={8} className={`${fieldCls} text-xs`} />
-              </label>
+              <ResponseField
+                value={input.fullResponse}
+                onChange={set("fullResponse")}
+                targetSentence={input.targetSentence}
+                className={fieldCls}
+              />
               <button
                 type="button"
                 onClick={handleCheck}
