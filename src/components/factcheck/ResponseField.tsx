@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { parseResponseBlocks } from "@/lib/factcheck/response-format";
+import { FACT_CHECK_API } from "./routes";
 
 type View = "edit" | "preview";
 
@@ -49,7 +50,7 @@ export default function ResponseField({
     setProcessing(true);
     setNote("");
     try {
-      const res = await fetch("/api/fact-check/format-response", {
+      const res = await fetch(`${FACT_CHECK_API}/format-response`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: value }),

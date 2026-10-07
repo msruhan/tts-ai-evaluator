@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import {
   FACT_LABELS,
   type AiResearchResult,
@@ -18,7 +18,20 @@ import {
   type LinkRow,
   type StageRow,
 } from "./parts";
+import {
+  clearHistory,
+  findHistoryEntry,
+  getHistoryServerSnapshot,
+  getHistorySnapshot,
+  newHistoryId,
+  removeHistoryEntry,
+  subscribeHistory,
+  upsertHistoryEntry,
+  type HistoryEntry,
+} from "./history";
+import HistoryPanel from "./HistoryPanel";
 import ResponseField from "./ResponseField";
+import { FACT_CHECK_API } from "./routes";
 import { streamNdjson } from "./stream";
 
 type RunState<T> = {
@@ -54,13 +67,14 @@ function useStreamRun<T>() {
   const [state, setState] = useState<RunState<T>>(emptyRun<T>());
   const abortRef = useRef<AbortController | null>(null);
 
-  const start = async (url: string, body: unknown) => {
+  const start = async (url: string, body: unknown, onResult?: (data: T) => void) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     setState({ ...emptyRun<T>(), running: true });
 
     const onEvent = (event: ProgressEvent) => {
+      if (event.type === "result") onResult?.(event.data as T);
       setState((prev) => {
         if (event.type === "stage") {
           return { ...prev, stages: [...prev.stages, { stage: event.stage, message: event.message }] };
@@ -98,7 +112,12 @@ function useStreamRun<T>() {
     setState(emptyRun<T>());
   };
 
-  return { state, start, reset };
+  const restore = (result: T | null) => {
+    abortRef.current?.abort();
+    setState({ ...emptyRun<T>(), result });
+  };
+
+  return { state, start, reset, restore };
 }
 
 export default function FactCheckApp() {
@@ -114,6 +133,13 @@ export default function FactCheckApp() {
 
   const ai = useStreamRun<AiResearchResult>();
   const cmp = useStreamRun<FinalReview>();
+
+  const history = useSyncExternalStore(
+    subscribeHistory,
+    getHistorySnapshot,
+    getHistoryServerSnapshot,
+  );
+  const [entryId, setEntryId] = useState<string | null>(null);
 
   const set = (field: keyof FactCheckInput) => (value: string) =>
     setInput((prev) => ({ ...prev, [field]: value }));
@@ -132,7 +158,7 @@ export default function FactCheckApp() {
     setParsing(true);
     setParseNote("");
     try {
-      const res = await fetch("/api/fact-check/parse", {
+      const res = await fetch(`${FACT_CHECK_API}/parse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: pasteText }),
@@ -155,19 +181,73 @@ export default function FactCheckApp() {
 
   function handleCheck() {
     cmp.reset();
-    void ai.start("/api/fact-check", input);
+    const runInput = { ...input };
+    const manual = { label: manualLabel, notes: manualNotes, urls: manualUrls };
+    void ai.start(FACT_CHECK_API, runInput, (data) => {
+      const id = newHistoryId();
+      const now = new Date().toISOString();
+      setEntryId(id);
+      upsertHistoryEntry({
+        id,
+        createdAt: now,
+        updatedAt: now,
+        input: runInput,
+        manual,
+        aiResult: data,
+        finalReview: null,
+      });
+    });
   }
 
   function handleCompare() {
     if (!ai.state.result) return;
-    void cmp.start("/api/fact-check/compare", {
-      input,
-      aiResult: ai.state.result,
-      manual: { label: manualLabel || undefined, notes: manualNotes, urls: manualUrlList },
-    });
+    const aiResult = ai.state.result;
+    const runInput = { ...input };
+    const manual = { label: manualLabel, notes: manualNotes, urls: manualUrls };
+    const targetId = entryId;
+    void cmp.start(
+      `${FACT_CHECK_API}/compare`,
+      {
+        input: runInput,
+        aiResult,
+        manual: { label: manualLabel || undefined, notes: manualNotes, urls: manualUrlList },
+      },
+      (data) => {
+        const existing = findHistoryEntry(targetId);
+        const now = new Date().toISOString();
+        const id = existing?.id ?? newHistoryId();
+        setEntryId(id);
+        upsertHistoryEntry({
+          id,
+          createdAt: existing?.createdAt ?? now,
+          updatedAt: now,
+          input: runInput,
+          manual,
+          aiResult,
+          finalReview: data,
+        });
+      },
+    );
+  }
+
+  function handleLoad(entry: HistoryEntry) {
+    setInput(entry.input);
+    setManualLabel(entry.manual.label);
+    setManualNotes(entry.manual.notes);
+    setManualUrls(entry.manual.urls);
+    ai.restore(entry.aiResult);
+    cmp.restore(entry.finalReview);
+    setEntryId(entry.id);
+    setParseNote("");
+  }
+
+  function handleDelete(id: string) {
+    removeHistoryEntry(id);
+    if (id === entryId) setEntryId(null);
   }
 
   function handleReset() {
+    setEntryId(null);
     ai.reset();
     cmp.reset();
     setInput(EMPTY_INPUT);
@@ -195,6 +275,16 @@ export default function FactCheckApp() {
 
       <main className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="flex flex-col gap-4">
+          <HistoryPanel
+            entries={history}
+            activeId={entryId}
+            onLoad={handleLoad}
+            onDelete={handleDelete}
+            onClear={() => {
+              clearHistory();
+              setEntryId(null);
+            }}
+          />
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-slate-900">1. Data task</h2>
