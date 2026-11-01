@@ -1,4 +1,4 @@
-import type { IdeaMetadataAlignment, OdinMetadataSections } from "./types";
+import type { AlignmentCheck, IdeaMetadataAlignment, OdinMetadataSections } from "./types";
 
 export type { AlignmentCheck, AlignmentStatus, IdeaMetadataAlignment } from "./types";
 
