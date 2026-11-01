@@ -1,839 +1,794 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { buildContextFromPaste } from "@/lib/gyro/parse-task-paste";
+import { useMemo, useState } from "react";
 import {
+  buildComplianceItems,
+  complianceStats,
+  type ComplianceItem,
+  type ComplianceStatus,
+} from "@/lib/gyro/compliance-items";
+import {
+  deterministicSuggestions,
+  type FieldSuggestion,
+} from "@/lib/gyro/deterministic-suggestions";
+import {
+  buildContextFromPaste,
+  emptyTaskContext,
+} from "@/lib/gyro/parse-task-paste";
+import {
+  emptyReview1,
   formatReview1Text,
+  REVIEW1_FIELD_DEFS,
+  type Review1Field,
   type Review1Result,
 } from "@/lib/gyro/review1-form";
-import {
-  GYRO_ISSUE_OPTIONS,
-  type ChatFormTarget,
-  type GyroAnswer,
-  type GyroIssueKey,
-  type GyroReviewResult,
-  type GyroReviewerNotes,
-  type TriState,
-} from "@/lib/gyro/types";
+import type { GyroTaskContext, MultimodalState } from "@/lib/gyro/types";
 
-type OutputTab = "review1" | "review2" | "json";
-type ChatMsg = { role: "user" | "assistant"; content: string };
-type PendingUpdate =
-  | {
-      target: "review2";
-      summary: string;
-      answers: GyroAnswer[];
-    }
-  | {
-      target: "review1";
-      review1: Review1Result;
-    };
+type FieldUiState = "empty" | "suggested" | "accepted" | "overridden";
+type FormTab = "saran" | "manual" | "semua";
 
-const DEMO_TASK_PASTE = `📌 Your Task Variables
-Review and internalize the following task-specific variables before starting your session.
-
-your language is Indonesian
-
-🔧 General Setup
-Variable	Value
-Is this task multimodal?	YES 🎥
-Category	Consumer Research
-Subcategory	Unfiltered product sentiment research
-Scene	A screen share showing an Amazon product listing, an online store product page, or an app listing. The evaluator should navigate to a specific product they're genuinely considering buying.
-
-💬 Initial Prompt
-Aku lagi mau checkout TWS Baseus ini di Tokopedia, tapi aku butuh banget kesimpulan ulasan jujur dari pelanggan asli yang udah pernah pakai barang ini—bukan cuma ulasan bintang lima settingan yang ada di aplikasinya. Bisa tolong lihat produk ini bareng aku dan bantu cari tau apa pendapat netizen di luar sana, mungkin dari thread X (Twitter), TikTok, atau forum Kaskus, biar aku bisa dapet rangkuman yang bener-bener unfiltered dan no endorse?
-
-🎯 User Goal
-The user wants to receive an unbiased, aggregated summary of real customer sentiment and experiences for a specific product they are considering buying online, to inform their purchase decision.
-
-🏷️ Phase Tags
-Phase	Tag
-P1 (Before Deep Research)	P1:CONVO
-P2 (While Waiting)	P2:IMPATIENT
-P3 (After Completion)	P3:SUMMARIZE
-
-📋 Phase Instructions
-Before Instructions (Phase 1)
-Have a 2-4 turn conversation based on some of the suggestions below THEN ask to Deep Research the topics you just discussed. You must use the word "Deep Research."
-
-While Instructions (Phase 2)
-The user might ask if the research is still underway.
-The user might wonder if this process typically takes this long.
-The user might ask for a quick status update on the progress of the research.
-
-After Instructions (Phase 3)
-You MUST ask for a quick overview of the Deep Research report on Unfiltered product sentiment research
-
-⚠️ Make sure you have read and understood ALL variables above before proceeding.`;
-
-const DEMO_LAYOUT_SUMMARY = `📖 Your Layout Summary
-
-Review all your answers below before proceeding to recording.
-
-🎬 Scene Description: A screen share of a sports analytics website showing today's BRI League 1 matchups and player prop lines.
-
-🎯 User Goal: The user wants to receive highly confident BRI League 1 player prop betting suggestions for today's games, backed by deep research into injury reports, matchup data, and recent player performance.
-
-📋 Before Instructions: Try to trigger Deep Research as quickly as possible. If Gemini asks any clarifying questions before starting, just answer them naturally. If Deep Research doesn't trigger on its own, try explicitly mentioning 'Deep Research'.
-
-💬 P1 - DIRECT: Initial Prompt: Halo. Lakukan deep research untuk pertandingan pembuka BRI Liga 1 dan tentukan tim yang paling layak diprediksi menang berdasarkan laporan cedera, data head-to-head (H2H) berdasarkan riwayat performa tahun sebelumnya.
-
-⏳ While Instruction: Ask if the deep research is nearing completion, express frustration about how long the process is taking, ask for a quick status update on the research progress.
-
-⏳ While - Turn 1: Masih lama ya?
-
-⏳ While - Turn 2: Kira-kira berapa lama ya?
-
-⏳ While - Turn 3: Jangan asal-asalan ya
-
-⏳ While - Turn 4: Belum selesai ya?
-
-⏳ While - Turn 5: Sudah selesai belum?
-
-🏁 After Instruction: The user might ask for a deeper dive into the specific injury impact for one of the recommended player props. The user might inquire about a player not mentioned in the report, wondering if their performance data suggests any value. The user might ask if there are any alternative prop lines for a recommended player that might offer even better value.
-
-🏁 After Draft: Berdasarkan hasil laporan tersebut. Apakah ada atlet terdampak cedera tertentu terhadap salah satu rekomendasi pemain? Apakah ada nama pemain yang tidak disebut dalam laporan tapi punya value tinggi? Apa ada rekomendasi alternatif line pemain dengan value lebih baik?`;
-
-const DEMO_TRANSCRIPT = `User: Aku mau checkout TWS Baseus ini, bisa bantu lihat ulasan jujur di luar app?
-Assistant: Bisa. Mau fokus fokus ke kualitas suara dulu atau daya tahan baterai?
-User: Keduanya, terus bandingkan sama ulasan di Tokopedia.
-Assistant: Oke. Mau aku pakai Deep Research biar rangkumannya lebih lengkap?
-User: Iya, pakai Deep Research.
-[Deep Research berjalan]
-User: Masih lama ya? Estimasi selesai kapan?
-Assistant: Masih mengumpulkan sumber, sebentar lagi.
-[Report muncul]
-User: Tolong kasih overview singkat report-nya.
-Assistant: Ringkasannya…`;
-
-const emptyNotes = (): GyroReviewerNotes => ({
-  deepResearchRequested: "unknown",
-  deepResearchTriggered: "unknown",
-  deepResearchPhraseSpoken: "unknown",
-  captionsVisible: "unknown",
-  visualOverlayUsed: "unknown",
-  personalizationObserved: "unknown",
-  recordingComplete: "unknown",
-  commentsMatchRecording: "unknown",
-  issues: [],
-  comments: "",
-  corrections: "",
-});
-
-function fieldClass() {
-  return "w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-cyan-500/60 focus:outline-none";
+function fieldState(
+  rating: string,
+  suggestion?: FieldSuggestion,
+): FieldUiState {
+  if (!suggestion) return rating ? "overridden" : "empty";
+  if (!rating) return "suggested";
+  if (rating === suggestion.value) return "accepted";
+  return "overridden";
 }
 
-function labelClass() {
-  return "mb-1 block text-xs font-medium uppercase tracking-wide text-zinc-400";
+function exportHelperText(
+  ctx: GyroTaskContext,
+  compliance: ComplianceItem[],
+  review1: Review1Result,
+  suggestions: FieldSuggestion[],
+): string {
+  const lines: string[] = [];
+  lines.push("=== GYRO REVIEW HELPER ===");
+  lines.push("");
+  lines.push("-- EXPECTED (dari task) --");
+  lines.push(`Multimodal: ${ctx.multimodal}`);
+  lines.push(`Scene: ${ctx.sceneKind || "-"} ${ctx.scene || ""}`.trim());
+  lines.push(`P1: ${ctx.p1 || "-"}`);
+  lines.push(`P2: ${ctx.p2 || "-"}`);
+  lines.push(`P3: ${ctx.p3 || "-"}`);
+  lines.push(`Goal: ${ctx.userGoal || "-"}`);
+  lines.push("");
+  lines.push("-- COMPLIANCE --");
+  for (const c of compliance) {
+    lines.push(`[${c.status}] ${c.title}`);
+    if (c.note) lines.push(`  catatan: ${c.note}`);
+  }
+  lines.push("");
+  lines.push("-- SARAN DETERMINISTIC --");
+  for (const s of suggestions) {
+    const f = review1.fields.find((x) => x.id === s.fieldId);
+    lines.push(
+      `${f?.title || s.fieldId}: ${s.value} (${fieldState(f?.rating || "", s)}) — ${s.reason}`,
+    );
+  }
+  lines.push("");
+  lines.push(formatReview1Text(review1));
+  return lines.join("\n");
 }
 
 export default function GyroApp() {
   const [taskPaste, setTaskPaste] = useState("");
+  const [layoutPaste, setLayoutPaste] = useState("");
   const [transcript, setTranscript] = useState("");
-  const [layoutSummary, setLayoutSummary] = useState("");
-  const [notes, setNotes] = useState<GyroReviewerNotes>(emptyNotes);
-  const [notesOpen, setNotesOpen] = useState(false);
-  const [tab, setTab] = useState<OutputTab>("review1");
-  const [result, setResult] = useState<GyroReviewResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [memoryInfo, setMemoryInfo] = useState({ foundation: 0, skills: 0 });
-  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const [chatError, setChatError] = useState<string | null>(null);
-  const [chatTarget, setChatTarget] = useState<ChatFormTarget>("review1");
-  const [pendingUpdate, setPendingUpdate] = useState<PendingUpdate | null>(
-    null,
+  const [ctx, setCtx] = useState<GyroTaskContext>(emptyTaskContext());
+  const [processed, setProcessed] = useState(false);
+  const [compliance, setCompliance] = useState<ComplianceItem[]>([]);
+  const [review1, setReview1] = useState<Review1Result>(emptyReview1);
+  const [copyOk, setCopyOk] = useState(false);
+  const [resetPrompt, setResetPrompt] = useState(false);
+  const [formTab, setFormTab] = useState<FormTab>("saran");
+
+  const suggestions = useMemo(
+    () => (processed ? deterministicSuggestions(ctx) : []),
+    [ctx, processed],
   );
+  const suggestionMap = useMemo(() => {
+    const m = new Map<string, FieldSuggestion>();
+    for (const s of suggestions) m.set(s.fieldId, s);
+    return m;
+  }, [suggestions]);
 
-  const context = useMemo(
-    () => buildContextFromPaste(taskPaste, transcript, "v1", layoutSummary),
-    [taskPaste, transcript, layoutSummary],
-  );
+  const stats = complianceStats(compliance);
+  const pendingSuggestions = suggestions.filter((s) => {
+    const f = review1.fields.find((x) => x.id === s.fieldId);
+    return !f?.rating;
+  }).length;
 
-  const tagPath = [context.p1, context.p2, context.p3].filter(Boolean).join(" | ");
+  const filledFields = review1.fields.filter((f) => f.rating.trim()).length;
 
-  useEffect(() => {
-    fetch("/api/gyro/memory")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.ok) {
-          setMemoryInfo({
-            foundation: Number(d.foundationSkillCount || 0),
-            skills: Number(d.memory?.skills?.length || 0),
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  function loadDemo() {
-    setTaskPaste(DEMO_TASK_PASTE);
-    setLayoutSummary(DEMO_LAYOUT_SUMMARY);
-    setTranscript(DEMO_TRANSCRIPT);
-    setNotes(emptyNotes());
-    setResult(null);
-    setError(null);
-    setPendingUpdate(null);
+  function applyProcess(forceResetFields: boolean) {
+    const next = buildContextFromPaste(taskPaste, transcript, "v1", layoutPaste);
+    setCtx(next);
+    setCompliance((prev) =>
+      buildComplianceItems(next, forceResetFields ? [] : prev),
+    );
+    if (forceResetFields) setReview1(emptyReview1());
+    setProcessed(true);
+    setResetPrompt(false);
+    setFormTab("saran");
   }
 
-  function toggleIssue(key: GyroIssueKey) {
-    setNotes((n) => ({
-      ...n,
-      issues: n.issues.includes(key)
-        ? n.issues.filter((k) => k !== key)
-        : [...n.issues, key],
+  function onProcess() {
+    if (!taskPaste.trim()) return;
+    if (processed && review1.fields.some((f) => Boolean(f.rating))) {
+      setResetPrompt(true);
+      return;
+    }
+    applyProcess(false);
+  }
+
+  function setMultimodal(v: MultimodalState) {
+    const next: GyroTaskContext = {
+      ...ctx,
+      multimodal: v,
+      requiresScene: v === "yes" ? "yes" : v === "no" ? "no" : "unknown",
+    };
+    setCtx(next);
+    setCompliance((prev) => buildComplianceItems(next, prev));
+  }
+
+  function setComplianceStatus(id: string, status: ComplianceStatus) {
+    setCompliance((rows) =>
+      rows.map((r) => (r.id === id ? { ...r, status } : r)),
+    );
+  }
+
+  function setComplianceNote(id: string, note: string) {
+    setCompliance((rows) =>
+      rows.map((r) => (r.id === id ? { ...r, note } : r)),
+    );
+  }
+
+  function setFieldRating(fieldId: string, rating: string) {
+    setReview1((r) => ({
+      ...r,
+      fields: r.fields.map((f) => (f.id === fieldId ? { ...f, rating } : f)),
     }));
   }
 
-  async function onGenerate() {
-    if (!taskPaste.trim() || !transcript.trim()) {
-      setError("Isi Task Variables paste dan Transcript dulu.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setCopied(false);
-    try {
-      const res = await fetch("/api/gyro/review", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context, notes }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generate gagal.");
-      setResult(data.result as GyroReviewResult);
-      setTab("review1");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Generate gagal.");
-    } finally {
-      setLoading(false);
-    }
+  function setFieldExplanation(fieldId: string, explanationId: string) {
+    setReview1((r) => ({
+      ...r,
+      fields: r.fields.map((f) =>
+        f.id === fieldId ? { ...f, explanationId } : f,
+      ),
+    }));
   }
 
-  const outputText = useMemo(() => {
-    if (!result) return "";
-    if (tab === "review1") {
-      return (
-        result.review1?.formatted ||
-        "Review 1 belum tersedia. Klik Generate."
-      );
-    }
-    if (tab === "review2") {
-      return (
-        result.review2?.formatted ||
-        [
-          result.summary,
-          "",
-          ...(result.answers || []).flatMap((a) => [
-            `${a.id}. ${a.label}`,
-            a.value,
-            "",
-          ]),
-        ].join("\n")
-      );
-    }
-    return JSON.stringify(result.json ?? result, null, 2);
-  }, [result, tab]);
-
-  async function onCopy() {
-    if (!outputText) return;
-    await navigator.clipboard.writeText(outputText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+  function acceptSuggestion(s: FieldSuggestion) {
+    setFieldRating(s.fieldId, s.value);
   }
 
-  async function onSendChat() {
-    const message = chatInput.trim();
-    if (!message || chatLoading) return;
-    setChatError(null);
-    setChatLoading(true);
-    setChatInput("");
-    setPendingUpdate(null);
-    setChatMessages((prev) => [...prev, { role: "user", content: message }]);
-    try {
-      const res = await fetch("/api/gyro/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          history: chatMessages,
-          context,
-          notes,
-          result,
-          target: chatTarget,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Chat gagal.");
-      setChatMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: String(data.reply || "") },
-      ]);
-      if (!data.proposeUpdate) return;
-
-      if (
-        chatTarget === "review1" &&
-        data.review1 &&
-        Array.isArray(data.review1.fields)
-      ) {
-        setPendingUpdate({
-          target: "review1",
-          review1: data.review1 as Review1Result,
-        });
-        return;
-      }
-
-      if (
-        chatTarget === "review2" &&
-        Array.isArray(data.answers) &&
-        data.answers.length
-      ) {
-        setPendingUpdate({
-          target: "review2",
-          summary: String(
-            data.summary || result?.review2?.summary || result?.summary || "",
-          ),
-          answers: data.answers as GyroAnswer[],
-        });
-      }
-    } catch (err) {
-      setChatError(err instanceof Error ? err.message : "Chat gagal.");
-    } finally {
-      setChatLoading(false);
-    }
+  function acceptAllSuggestions() {
+    setReview1((r) => ({
+      ...r,
+      fields: r.fields.map((f) => {
+        const sug = suggestionMap.get(f.id);
+        if (!sug || f.rating) return f;
+        return { ...f, rating: sug.value };
+      }),
+    }));
   }
 
-  function applyPendingUpdate() {
-    if (!pendingUpdate || !result) return;
-
-    if (pendingUpdate.target === "review1") {
-      const review1 = {
-        ...pendingUpdate.review1,
-        formatted: formatReview1Text(pendingUpdate.review1),
-      };
-      setResult({
-        ...result,
-        review1,
-        json: {
-          ...result.json,
-          review1,
-          updatedViaChat: "review1",
-        },
-      });
-      setPendingUpdate(null);
-      setTab("review1");
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Perubahan sudah diterapkan ke Review 1 · Form saja.",
-        },
-      ]);
-      return;
-    }
-
-    const { answers, summary } = pendingUpdate;
-    const formatted = [
-      "=== OUTPUT REVIEW 2 — Workflow Q1–Q22 ===",
-      "",
-      "Summary:",
-      summary,
-      "",
-      ...answers.flatMap((a) => [`${a.id}. ${a.label}`, a.value, ""]),
-    ].join("\n");
-    const json: Record<string, unknown> = {
-      ...(result.json || {}),
-      rubricVersion: "v1",
-      tagPath,
-      summary,
-      answers,
-      review2: { summary, answers },
-      updatedViaChat: "review2",
-    };
-    for (const a of answers) json[a.id] = a.value;
-    setResult({
-      ...result,
-      summary,
-      answers,
-      json,
-      review2: { summary, answers, formatted },
-      review1: result.review1,
-    });
-    setPendingUpdate(null);
-    setTab("review2");
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content: "Perubahan sudah diterapkan ke Review 2 · Q1–Q22 saja.",
-      },
-    ]);
+  async function copyExport() {
+    const text = exportHelperText(ctx, compliance, review1, suggestions);
+    await navigator.clipboard.writeText(text);
+    setCopyOk(true);
+    window.setTimeout(() => setCopyOk(false), 2000);
   }
+
+  const visibleDefs = REVIEW1_FIELD_DEFS.filter((d) => {
+    const sug = suggestionMap.has(d.id);
+    if (formTab === "saran") return sug;
+    if (formTab === "manual") return !sug;
+    return true;
+  });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="border-b border-zinc-800">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-cyan-400/90">
-              Gyro Accordion · Deep Research
-            </p>
-            <h1 className="text-xl font-semibold text-white sm:text-2xl">
-              Task Gyro Accordion
-            </h1>
-            <p className="mt-0.5 max-w-xl text-sm text-zinc-400">
-              Paste Task Variables + transcript → Generate. Observasi manual
-              opsional.
-            </p>
-            <p className="mt-1 text-[11px] text-zinc-500">
-              Skills {memoryInfo.foundation} · Memory {memoryInfo.skills}
-              {tagPath ? ` · ${tagPath}` : ""}
-              {context.multimodal !== "unknown"
-                ? ` · Multimodal ${context.multimodal}`
-                : ""}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-teal-700">
+            Gyro Accordion · Review Helper
+          </p>
+          <h1 className="text-xl font-semibold text-slate-900 sm:text-2xl">
+            Alat bantu review Expected vs Actual
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm text-slate-600">
+            Bandingkan yang diminta task vs yang dikerjakan. Saran otomatis hanya
+            untuk yang pasti dari Task Variables.{" "}
             <Link
-              href="/"
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
+              href="/live-eval-handbook"
+              className="font-medium text-teal-700 underline-offset-2 hover:underline"
             >
-              ← Evaluasi TTS
+              Buku Panduan Rater
             </Link>
-            <button
-              type="button"
-              onClick={loadDemo}
-              className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
-            >
-              Demo data
-            </button>
-          </div>
+          </p>
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4">
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <h2 className="mb-3 text-sm font-semibold text-zinc-100">Input task</h2>
-          <div className="space-y-3">
-            <div>
-              <label className={labelClass()}>
-                Task Variables (paste dari Outlier)
-              </label>
+      {processed && (
+        <div className="sticky top-11 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-2.5 text-sm sm:px-6">
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
+              Belum {stats.unchecked}
+            </span>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-800">
+              Sesuai {stats.match}
+            </span>
+            <span className="rounded-full bg-rose-50 px-2.5 py-1 text-rose-800">
+              Tidak sesuai {stats.mismatch}
+            </span>
+            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-900">
+              Saran menunggu {pendingSuggestions}
+            </span>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-600">
+              Form {filledFields}/{review1.fields.length}
+            </span>
+            <span className="text-slate-500">Checklist {stats.pct}%</span>
+            {pendingSuggestions > 0 && (
+              <button
+                type="button"
+                onClick={acceptAllSuggestions}
+                className="rounded-lg bg-teal-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-800"
+              >
+                Terima semua saran
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={copyExport}
+              className="ml-auto rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              {copyOk ? "Tersalin" : "Salin ringkasan"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <main className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6">
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-slate-900">Input task</h2>
+          <div className="grid gap-3 lg:grid-cols-2">
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">
+                Task Variables <span className="text-rose-600">*</span>
+              </span>
               <textarea
-                className={`${fieldClass()} min-h-[200px] font-mono text-[13px]`}
                 value={taskPaste}
                 onChange={(e) => setTaskPaste(e.target.value)}
-                placeholder="Paste seluruh blok Task Variables di sini (multimodal, scene, prompt, goal, P1/P2/P3, instructions)…"
+                rows={10}
+                placeholder="Paste blok Task Variables dari Outlier…"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-relaxed text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
               />
-            </div>
-            <div>
-              <label className={labelClass()}>
-                Layout Summary (paste dari Outlier)
-              </label>
+            </label>
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-700">
+                Layout Summary{" "}
+                <span className="text-slate-400">(disarankan)</span>
+              </span>
               <textarea
-                className={`${fieldClass()} min-h-[200px] font-mono text-[13px]`}
-                value={layoutSummary}
-                onChange={(e) => setLayoutSummary(e.target.value)}
-                placeholder={`Paste blok "Your Layout Summary" (Scene, Goal, Before/While/After, While Turns 1–5, After Draft)…`}
+                value={layoutPaste}
+                onChange={(e) => setLayoutPaste(e.target.value)}
+                rows={10}
+                placeholder="Paste Layout Summary (while turns, after draft)…"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-relaxed text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
               />
-              {(context.whileTurns.length > 0 || context.afterDraft) && (
-                <p className="mt-1 text-[11px] text-zinc-500">
-                  Ter-parse:{" "}
-                  {context.whileTurns.length > 0
-                    ? `${context.whileTurns.length} while turns`
-                    : "tanpa while turns"}
-                  {context.afterDraft ? " · after draft ✓" : ""}
-                  {context.p1 ? ` · ${context.p1}` : ""}
-                </p>
-              )}
-              <p className="mt-1 text-[11px] text-zinc-500">
-                Disarankan. Dipakai untuk menilai skrip turn vs transcript.
-                Generate: Review 1 (form) + Review 2 (Q1–Q22).
-              </p>
-            </div>
-            <div>
-              <label className={labelClass()}>Transcript video</label>
-              <textarea
-                className={`${fieldClass()} min-h-[180px] font-mono text-[13px]`}
-                value={transcript}
-                onChange={(e) => setTranscript(e.target.value)}
-                placeholder="Paste transcript sesi Gemini Live…"
-              />
-            </div>
+            </label>
+          </div>
+          <label className="mt-3 block text-sm">
+            <span className="mb-1 block font-medium text-slate-700">
+              Transcript{" "}
+              <span className="text-slate-400">(opsional — bukti)</span>
+            </span>
+            <textarea
+              value={transcript}
+              onChange={(e) => setTranscript(e.target.value)}
+              rows={5}
+              placeholder="Opsional: paste transcript untuk membantu cek compliance…"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-relaxed text-slate-800 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+            />
+          </label>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onProcess}
+              disabled={!taskPaste.trim()}
+              className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {processed ? "Perbarui dari paste" : "Proses task"}
+            </button>
+            {resetPrompt && (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                <span>Ada nilai yang sudah diisi. Reset saran & field?</span>
+                <button
+                  type="button"
+                  className="rounded-lg bg-amber-800 px-2.5 py-1 text-white"
+                  onClick={() => applyProcess(true)}
+                >
+                  Reset & proses
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-amber-300 bg-white px-2.5 py-1"
+                  onClick={() => applyProcess(false)}
+                >
+                  Pertahankan nilai
+                </button>
+                <button
+                  type="button"
+                  className="text-amber-800 underline"
+                  onClick={() => setResetPrompt(false)}
+                >
+                  Batal
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <button
-            type="button"
-            onClick={() => setNotesOpen((v) => !v)}
-            className="flex w-full items-center justify-between text-left"
-          >
-            <div>
-              <h2 className="text-sm font-semibold text-zinc-100">
-                Catatan reviewer (opsional)
+        {!processed ? (
+          <p className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-500">
+            Paste Task Variables lalu klik <strong>Proses task</strong> untuk
+            melihat Expected vs checklist.
+          </p>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Yang diminta task
               </h2>
-              <p className="text-[11px] text-zinc-500">
-                Untuk hal yang hanya Anda lihat di recording — sisanya AI dari
-                paste + transcript.
-              </p>
-            </div>
-            <span className="text-xs text-zinc-500">
-              {notesOpen ? "Sembunyikan" : "Tampilkan"}
-            </span>
-          </button>
 
-          {notesOpen && (
-            <div className="mt-3 space-y-3 border-t border-zinc-800 pt-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {(
-                  [
-                    ["deepResearchTriggered", "DR triggered?"],
-                    ["recordingComplete", "Recording complete?"],
-                    ["commentsMatchRecording", "Comments match recording?"],
-                    ["captionsVisible", "Captions on?"],
-                  ] as const
-                ).map(([key, label]) => (
-                  <div key={key}>
-                    <label className={labelClass()}>{label}</label>
-                    <select
-                      className={fieldClass()}
-                      value={notes[key]}
-                      onChange={(e) =>
-                        setNotes((n) => ({
-                          ...n,
-                          [key]: e.target.value as TriState,
-                        }))
-                      }
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-slate-800">
+                    Multimodal
+                  </span>
+                  {(["yes", "no", "unknown"] as MultimodalState[]).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setMultimodal(v)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                        ctx.multimodal === v
+                          ? "bg-teal-700 text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
                     >
-                      <option value="unknown">Unknown</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  </div>
-                ))}
+                      {v === "yes" ? "YES" : v === "no" ? "NO" : "?"}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600">
+                  Scene:{" "}
+                  <span className="font-medium text-slate-800">
+                    {ctx.sceneKind || "—"}
+                  </span>
+                </p>
+                {ctx.scene ? (
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">
+                    {ctx.scene}
+                  </p>
+                ) : null}
               </div>
-              <div>
-                <p className={labelClass()}>Quick issues</p>
-                <div className="flex flex-wrap gap-2">
-                  {GYRO_ISSUE_OPTIONS.map((opt) => {
-                    const on = notes.issues.includes(opt.key);
-                    return (
+
+              <Card title="User goal" body={ctx.userGoal} />
+              <Card title="Initial prompt" body={ctx.initialPrompt} mono />
+              <Card
+                title={`P1 ${ctx.p1 || ""}`.trim()}
+                body={ctx.beforeInstructions}
+              />
+              <Card
+                title={`P2 ${ctx.p2 || ""}`.trim()}
+                body={[
+                  ctx.whileInstructions,
+                  ctx.whileTurns.length
+                    ? ctx.whileTurns
+                        .map((t, i) => `Turn ${i + 1}: ${t}`)
+                        .join("\n\n")
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join("\n\n")}
+              />
+              <Card
+                title={`P3 ${ctx.p3 || ""}`.trim()}
+                body={[ctx.afterInstructions, ctx.afterDraft]
+                  .filter(Boolean)
+                  .join("\n\n")}
+              />
+
+              {transcript.trim() ? (
+                <details className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-900">
+                    Transcript (bukti)
+                  </summary>
+                  <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap font-mono text-xs text-slate-700">
+                    {transcript}
+                  </pre>
+                </details>
+              ) : null}
+            </section>
+
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Checklist compliance
+              </h2>
+
+              {compliance.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700">
+                    {item.expected || "—"}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(
+                      [
+                        ["unchecked", "Belum"],
+                        ["match", "Sesuai"],
+                        ["mismatch", "Tidak sesuai"],
+                      ] as const
+                    ).map(([value, label]) => (
                       <button
-                        key={opt.key}
+                        key={value}
                         type="button"
-                        onClick={() => toggleIssue(opt.key)}
-                        className={`rounded-full border px-2.5 py-1 text-xs ${
-                          on
-                            ? "border-cyan-500/70 bg-cyan-500/15 text-cyan-200"
-                            : "border-zinc-700 text-zinc-400"
+                        onClick={() => setComplianceStatus(item.id, value)}
+                        className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                          item.status === value
+                            ? value === "match"
+                              ? "bg-emerald-600 text-white"
+                              : value === "mismatch"
+                                ? "bg-rose-600 text-white"
+                                : "bg-slate-700 text-white"
+                            : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                         }`}
                       >
-                        {opt.label}
+                        {label}
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div>
-                <label className={labelClass()}>Komentar manual</label>
-                <textarea
-                  className={`${fieldClass()} min-h-[80px]`}
-                  value={notes.comments}
-                  onChange={(e) =>
-                    setNotes((n) => ({ ...n, comments: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-zinc-100">Output</h2>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onGenerate}
-                disabled={loading}
-                className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-cyan-400 disabled:opacity-50"
-              >
-                {loading ? "Generating…" : "Generate"}
-              </button>
-              <button
-                type="button"
-                onClick={onCopy}
-                disabled={!outputText}
-                className="rounded-lg border border-zinc-600 px-4 py-2 text-sm text-zinc-200 disabled:opacity-40"
-              >
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
-          </div>
-
-          <div className="mb-3 flex gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1">
-            {(
-              [
-                ["review1", "Review 1 · Form"],
-                ["review2", "Review 2 · Q1–Q22"],
-                ["json", "JSON"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setTab(id);
-                  if (id === "review1" || id === "review2") {
-                    setChatTarget(id);
-                    setPendingUpdate(null);
-                  }
-                }}
-                className={`flex-1 rounded-md px-3 py-1.5 text-sm ${
-                  tab === id
-                    ? "bg-zinc-800 text-cyan-300"
-                    : "text-zinc-500 hover:text-zinc-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {error && (
-            <p className="mb-3 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
-              {error}
-            </p>
-          )}
-
-          {tab === "review1" && result?.review1 ? (
-            <div className="max-h-[560px] space-y-3 overflow-auto">
-              {(() => {
-                const r1 = result.review1;
-                return (
-                  <>
-              <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-cyan-400/90">
-                  Deep research was triggered?
-                </p>
-                <p className="mt-1 text-[11px] text-zinc-500">
-                  Jika No, itu bukan otomatis fail — catat fakta dari transcript.
-                </p>
-                <p className="mt-2 text-sm font-medium text-zinc-100">
-                  {r1.deepResearchTriggered}
-                </p>
-                <p className="mt-1 text-sm text-zinc-300">
-                  {r1.deepResearchNoteId}
-                </p>
-              </div>
-              {r1.fields.map((f) => (
-                <div key={f.id}>
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-                    <p className="text-sm font-semibold text-zinc-100">
-                      {f.title}
-                    </p>
-                    {f.promptEn ? (
-                      <p className="mt-1 text-[11px] leading-snug text-zinc-500">
-                        {f.promptEn}
-                      </p>
-                    ) : null}
-                    <p className="mt-1 text-[11px] leading-snug text-zinc-400">
-                      {f.explainId}
-                    </p>
-                    {f.id === "response_depth" ? (
-                      <p className="mt-2 text-[11px] text-zinc-600">
-                        Skala: 1 Very Poor · 2 · 3 Adequate · 4 · 5 Excellent
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-[11px] text-zinc-600">
-                        Opsi: {f.options.join(" · ")}
-                      </p>
-                    )}
-                    <p className="mt-2 text-sm text-cyan-200">
-                      Pilihan: {f.rating}
-                    </p>
-                    <p className="mt-1 text-sm text-zinc-300">
-                      {f.explanationId}
-                    </p>
+                    ))}
                   </div>
-                  {f.id === "response_depth" ? (
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm">
-                        <p className="text-xs font-semibold text-zinc-400">
-                          Quality check 1
-                        </p>
-                        <p className="mt-1 text-[11px] text-zinc-500">
-                          Jawaban akurat dan berbasis video/transcript?
-                        </p>
-                        <p className="mt-1 text-zinc-100">
-                          {r1.qualityCheckAccurate}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm">
-                        <p className="text-xs font-semibold text-zinc-400">
-                          Grammar check 1
-                        </p>
-                        <p className="mt-1 text-[11px] text-zinc-500">
-                          Ejaan/grammar bersih, tanpa typo AI?
-                        </p>
-                        <p className="mt-1 text-zinc-100">
-                          {r1.grammarCheck}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
+                  <input
+                    type="text"
+                    value={item.note}
+                    onChange={(e) =>
+                      setComplianceNote(item.id, e.target.value)
+                    }
+                    placeholder="Catatan singkat (opsional)…"
+                    className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  />
                 </div>
               ))}
-                  </>
-                );
-              })()}
-            </div>
-          ) : (
-            <pre className="max-h-[560px] overflow-auto whitespace-pre-wrap rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-[13px] text-zinc-200">
-              {outputText ||
-                "Paste Task Variables + Layout Summary + transcript, lalu Generate."}
-            </pre>
-          )}
-        </section>
 
-        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h2 className="text-sm font-semibold text-zinc-100">
-                Chat dengan AI
-              </h2>
-              <p className="text-[11px] text-zinc-500">
-                Pilih form dulu — koreksi AI hanya mengubah form itu.
-              </p>
-            </div>
-            {pendingUpdate && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={applyPendingUpdate}
-                  className="rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-zinc-950"
-                >
-                  Terapkan ke{" "}
-                  {pendingUpdate.target === "review1"
-                    ? "Review 1"
-                    : "Review 2"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPendingUpdate(null)}
-                  className="rounded-lg border border-zinc-600 px-3 py-2 text-sm text-zinc-300"
-                >
-                  Buang
-                </button>
+              <div className="flex flex-wrap items-end justify-between gap-2 pt-2">
+                <div>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Form Review 1
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Tab Saran = yang pasti dari task. Manual = judgement kamu.
+                  </p>
+                </div>
+                <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
+                  {(
+                    [
+                      ["saran", "Saran"],
+                      ["manual", "Manual"],
+                      ["semua", "Semua"],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setFormTab(id)}
+                      className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                        formTab === id
+                          ? "bg-teal-700 text-white"
+                          : "text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="mb-3 flex flex-wrap gap-2">
-            {(
-              [
-                ["review1", "Review 1 · Form"],
-                ["review2", "Review 2 · Q1–Q22"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setChatTarget(id);
-                  setPendingUpdate(null);
-                }}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
-                  chatTarget === id
-                    ? "bg-cyan-500/20 text-cyan-200 ring-1 ring-cyan-500/50"
-                    : "bg-zinc-800 text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Target: {label}
-              </button>
-            ))}
-          </div>
+              {(formTab === "manual" || formTab === "semua") && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Deep Research terpicu?
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    No ≠ otomatis fail — catat fakta dari sesi.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    {(["Yes", "No"] as const).map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() =>
+                          setReview1((r) => ({
+                            ...r,
+                            deepResearchTriggered: v,
+                          }))
+                        }
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                          review1.deepResearchTriggered === v
+                            ? "bg-slate-800 text-white"
+                            : "border border-slate-200 text-slate-600"
+                        }`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={review1.deepResearchNoteId}
+                    onChange={(e) =>
+                      setReview1((r) => ({
+                        ...r,
+                        deepResearchNoteId: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  />
+                </div>
+              )}
 
-          {pendingUpdate && (
-            <p className="mb-3 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100">
-              {pendingUpdate.target === "review1"
-                ? `AI mengusulkan update Review 1 (${pendingUpdate.review1.fields.length} field). Review 2 tidak diubah.`
-                : `AI mengusulkan update Review 2 (${pendingUpdate.answers.length} jawaban). Review 1 tidak diubah.`}
-            </p>
-          )}
-
-          <div className="mb-3 max-h-[240px] space-y-2 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-3">
-            {chatMessages.length === 0 && (
-              <p className="text-sm text-zinc-500">
-                {chatTarget === "review1"
-                  ? 'Contoh: "Isi (1.b) bahwa UI jelas, sesi voice-only"'
-                  : 'Contoh: "Q11 No karena DR tidak triggered"'}
-              </p>
-            )}
-            {chatMessages.map((m, i) => (
-              <div
-                key={`${m.role}-${i}`}
-                className={`rounded-lg px-3 py-2 text-sm ${
-                  m.role === "user"
-                    ? "ml-6 bg-zinc-800"
-                    : "mr-6 border border-zinc-800 bg-zinc-900"
-                }`}
-              >
-                <p className="mb-0.5 text-[10px] uppercase text-zinc-500">
-                  {m.role === "user" ? "Anda" : "AI"}
+              {visibleDefs.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-slate-300 bg-white px-3 py-6 text-center text-sm text-slate-500">
+                  Tidak ada field di tab ini.
+                  {formTab === "saran"
+                    ? " Coba set Multimodal = NO, atau buka tab Manual/Semua."
+                    : ""}
                 </p>
-                <p className="whitespace-pre-wrap">{m.content}</p>
-              </div>
-            ))}
-            {chatLoading && (
-              <p className="text-sm text-zinc-500">AI sedang membalas…</p>
-            )}
+              ) : (
+                visibleDefs.map((def) => {
+                  const field = review1.fields.find((f) => f.id === def.id)!;
+                  const sug = suggestionMap.get(def.id);
+                  return (
+                    <FieldCard
+                      key={def.id}
+                      def={def}
+                      field={field}
+                      suggestion={sug}
+                      onAccept={() => sug && acceptSuggestion(sug)}
+                      onRating={(v) => setFieldRating(def.id, v)}
+                      onExplanation={(v) => setFieldExplanation(def.id, v)}
+                    />
+                  );
+                })
+              )}
+
+              {(formTab === "manual" || formTab === "semua") && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    Quality & grammar check
+                  </h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <YesNo
+                      label="Quality check akurat?"
+                      value={review1.qualityCheckAccurate}
+                      onChange={(v) =>
+                        setReview1((r) => ({
+                          ...r,
+                          qualityCheckAccurate: v,
+                        }))
+                      }
+                    />
+                    <YesNo
+                      label="Grammar check bersih?"
+                      value={review1.grammarCheck}
+                      onChange={(v) =>
+                        setReview1((r) => ({ ...r, grammarCheck: v }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+            </section>
           </div>
-
-          {chatError && (
-            <p className="mb-3 text-sm text-rose-300">{chatError}</p>
-          )}
-
-          <form
-            className="flex flex-col gap-2 sm:flex-row"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void onSendChat();
-            }}
-          >
-            <textarea
-              className={`${fieldClass()} min-h-[64px] flex-1`}
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder={
-                chatTarget === "review1"
-                  ? "Koreksi Review 1 saja…"
-                  : "Koreksi Review 2 (Q1–Q22) saja…"
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  void onSendChat();
-                }
-              }}
-            />
-            <button
-              type="submit"
-              disabled={chatLoading || !chatInput.trim()}
-              className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950 disabled:opacity-40 sm:self-end"
-            >
-              Kirim
-            </button>
-          </form>
-        </section>
+        )}
       </main>
+    </div>
+  );
+}
+
+function YesNo({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: "Yes" | "No";
+  onChange: (v: "Yes" | "No") => void;
+}) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-slate-700">{label}</p>
+      <div className="mt-1 flex gap-2">
+        {(["Yes", "No"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(v)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+              value === v
+                ? "bg-slate-800 text-white"
+                : "border border-slate-200 text-slate-600"
+            }`}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FieldCard({
+  def,
+  field,
+  suggestion,
+  onAccept,
+  onRating,
+  onExplanation,
+}: {
+  def: (typeof REVIEW1_FIELD_DEFS)[number];
+  field: Review1Field;
+  suggestion?: FieldSuggestion;
+  onAccept: () => void;
+  onRating: (v: string) => void;
+  onExplanation: (v: string) => void;
+}) {
+  const state = fieldState(field.rating, suggestion);
+  const selectedMulti = new Set(
+    field.rating
+      ? field.rating.split(" | ").map((s) => s.trim()).filter(Boolean)
+      : [],
+  );
+
+  function toggleMulti(opt: string) {
+    const next = new Set(selectedMulti);
+    if (next.has(opt)) next.delete(opt);
+    else next.add(opt);
+    onRating([...next].join(" | "));
+  }
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <h3 className="text-sm font-semibold text-slate-900">{def.title}</h3>
+        {suggestion ? (
+          <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-800">
+            Disarankan (pasti)
+          </span>
+        ) : (
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+            Manual
+          </span>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-slate-600">{def.explainId}</p>
+
+      {suggestion ? (
+        <div className="mt-2 rounded-lg border border-teal-100 bg-teal-50/80 px-3 py-2 text-xs text-teal-950">
+          <p>
+            Usul: <strong>{suggestion.value}</strong>
+          </p>
+          <p className="mt-0.5 opacity-90">{suggestion.reason}</p>
+          {state === "suggested" ? (
+            <button
+              type="button"
+              onClick={onAccept}
+              className="mt-2 rounded-lg bg-teal-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-teal-800"
+            >
+              Terima
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {def.freeText ? (
+        <textarea
+          value={field.rating}
+          onChange={(e) => onRating(e.target.value)}
+          rows={3}
+          placeholder="Isi teks bebas…"
+          className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+        />
+      ) : def.multi ? (
+        <div className="mt-2 space-y-1.5">
+          {def.options.map((o) => (
+            <label
+              key={o}
+              className="flex cursor-pointer items-start gap-2 rounded-lg border border-slate-100 px-2 py-1.5 text-xs hover:bg-slate-50"
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={selectedMulti.has(o)}
+                onChange={() => toggleMulti(o)}
+              />
+              <span>{o}</span>
+            </label>
+          ))}
+        </div>
+      ) : (
+        <select
+          value={field.rating}
+          onChange={(e) => onRating(e.target.value)}
+          className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-teal-500"
+        >
+          <option value="">— Belum diisi —</option>
+          {def.options.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {!def.freeText && (
+        <textarea
+          value={field.explanationId}
+          onChange={(e) => onExplanation(e.target.value)}
+          rows={2}
+          placeholder="Penjelasan / catatan (opsional)…"
+          className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+        />
+      )}
+
+      <p className="mt-1 text-[11px] text-slate-400">
+        Status:{" "}
+        {state === "accepted"
+          ? "Diterima dari saran"
+          : state === "overridden"
+            ? suggestion
+              ? "Diubah manual"
+              : "Terisi"
+            : state === "suggested"
+              ? "Menunggu Terima"
+              : "Kosong"}
+      </p>
+    </div>
+  );
+}
+
+function Card({
+  title,
+  body,
+  mono,
+}: {
+  title: string;
+  body: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-900">{title || "—"}</h3>
+      <p
+        className={`mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 ${
+          mono ? "font-mono text-xs" : ""
+        }`}
+      >
+        {body?.trim() || (
+          <span className="text-slate-400">Tidak ter-parse dari paste.</span>
+        )}
+      </p>
     </div>
   );
 }

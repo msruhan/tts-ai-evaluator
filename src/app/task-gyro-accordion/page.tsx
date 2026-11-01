@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import GyroApp from "@/components/gyro/GyroApp";
 
 export const metadata: Metadata = {
-  title: "Task Gyro Accordion",
+  title: "Task Gyro · Review Helper",
   description:
-    "Avalanch Deep Research review workstation — isolated from TTS evaluation memory.",
+    "Alat bantu review Expected vs Actual untuk Avalanch / Gyro Accordion — saran otomatis hanya untuk yang pasti dari Task Variables.",
 };
 
 export default function TaskGyroAccordionPage() {

@@ -238,12 +238,6 @@ export default function EvaluatorApp() {
           >
             + Evaluasi baru
           </button>
-          <a
-            href="/task-gyro-accordion"
-            className="mt-2 block w-full rounded-xl border border-cyan-800/60 bg-slate-900 px-3 py-2.5 text-left text-sm font-medium text-cyan-200 transition hover:bg-slate-800"
-          >
-            Task Gyro Accordion →
-          </a>
           <p className="mt-2 px-1 text-[11px] text-slate-400">
             Storage: {storageMode} · Avalanch: {avalanchSkillsCount} · Memory:{" "}
             {memoryCount}
@@ -304,7 +298,7 @@ export default function EvaluatorApp() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
+        <header className="sticky top-11 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-700 lg:hidden"

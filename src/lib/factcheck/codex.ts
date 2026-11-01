@@ -50,7 +50,8 @@ export function assertLocalRuntime() {
   }
 }
 
-type RunOptions = { timeoutMs?: number; label?: string };
+type Provider = "codex" | "sumopod" | "auto";
+type RunOptions = { timeoutMs?: number; label?: string; provider?: Provider };
 
 async function runOnce(
   bin: string,
@@ -131,8 +132,6 @@ function parseJsonLoose(text: string): unknown {
   }
 }
 
-type Provider = "codex" | "sumopod" | "auto";
-
 function readProvider(): Provider {
   const value = process.env.FACTCHECK_LLM?.trim().toLowerCase();
   return value === "sumopod" || value === "auto" ? value : "codex";
@@ -159,7 +158,7 @@ export async function runCodexJson<T>(
   schema: object,
   opts: RunOptions = {},
 ): Promise<T> {
-  const provider = readProvider();
+  const provider = opts.provider ?? readProvider();
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const label = opts.label ? ` (${opts.label})` : "";
   const viaSumopod = () => withRetry<T>(() => runSumopodOnce(prompt, schema, timeoutMs));

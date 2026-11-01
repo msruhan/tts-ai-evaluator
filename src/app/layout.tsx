@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Source_Sans_3, Fraunces } from "next/font/google";
+import SiteNav from "@/components/SiteNav";
 import "./globals.css";
 
 const sans = Source_Sans_3({
@@ -24,7 +25,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="id"
       className={`${sans.variable} ${display.variable} h-full antialiased`}
     >
-      <body className="min-h-full font-sans text-slate-900">{children}</body>
+      <body className="min-h-full font-sans text-slate-900">
+        <SiteNav />
+        {children}
+      </body>
     </html>
   );
 }

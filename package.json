@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "test:factcheck": "node --experimental-strip-types --no-warnings --test src/lib/factcheck/__tests__/*.test.ts",
-    "test:auth": "node --experimental-strip-types --no-warnings --test src/lib/__tests__/auth.test.ts"
+    "test:auth": "node --experimental-strip-types --no-warnings --test src/lib/__tests__/auth.test.ts",
+    "test:odin": "node --experimental-strip-types --no-warnings --test src/lib/odin/__tests__/*.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
+    "jszip": "^3.10.2",
     "next": "16.3.1",
     "openai": "^7.4.0",
     "react": "19.2.8",

@@ -8,6 +8,9 @@
     },
     "src/app/api/gyro/chat/route.ts": {
       "maxDuration": 120
+    },
+    "src/app/api/odin/review/route.ts": {
+      "maxDuration": 180
     }
   }
 }

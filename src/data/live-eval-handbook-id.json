@@ -1,0 +1,1824 @@
+{
+  "meta": {
+    "title": "RemoTasks Live E2E Eval — Buku Panduan Rater",
+    "subtitle": "Referensi cepat untuk setiap pertanyaan rubric (v3.6)",
+    "source": "Live E2E Eval Template v3.6",
+    "note": "referensi, bukan form pengisian"
+  },
+  "PRIMER": [
+    {
+      "id": "how",
+      "num": "Start",
+      "cat": "Dasar",
+      "title": "Cara membaca setiap rubrik di template ini (How to read every rubric)",
+      "lead": "Hampir semua pertanyaan di bawah bentuknya sama: tangga tingkat keparahan. Pahami sekali, lalu kamu bisa menilai dimensi apa pun dengan cepat dan konsisten.",
+      "rule": "<b>Satu pertanyaan yang menentukan sebagian besar rating:</b> apakah masalah itu mengubah kemampuanmu mencapai tujuan? Tidak terasa sama sekali → <b>No Issues</b>. Kamu menyadarinya dan ada gesekan, tapi tetap sampai tujuan → <b>Minor</b>. Menghalangi, menggagalkan percakapan, atau membuatmu menyerah pada sebagian tujuan → <b>Major</b>. Kalau kemampuan itu sama sekali tidak pernah dipakai → <b>N/A</b>.",
+      "note": {
+        "t": "N/A adalah jawaban yang sah",
+        "b": "Tidak semua pertanyaan relevan di setiap sesi. Pakai N/A kalau kemampuan itu tidak pernah diuji dan tidak ada kesempatan yang jelas untuk mengujinya — bukan untuk melewatkan pertanyaan yang kamu ragu. \"Seharusnya bisa pakai visual overlay di sini tapi tidak\" itu <em>Missed Opportunity</em>, bukan N/A."
+      },
+      "levels": [
+        {
+          "n": "N/A",
+          "tone": "na",
+          "s": "Tidak pernah dipakai",
+          "t": "Kemampuan tidak dipakai DAN tidak ada kesempatan yang jelas — eksplisit, tersirat, atau implisit — di mana wajar diharapkan. Beberapa pertanyaan menyebut ini \"Not Relevant\"."
+        },
+        {
+          "n": "No Issues",
+          "tone": "good",
+          "s": "Tidak ada yang perlu ditandai",
+          "t": "Berjalan seperti asisten yang kompeten seharusnya. Kamu tidak mencari kesempurnaan abstrak — kamu memastikan tidak ada yang menghalangi dan tidak ada yang terasa aneh."
+        },
+        {
+          "n": "Minor Issue(s)",
+          "tone": "bad",
+          "s": "Gesekan, bukan kegagalan",
+          "t": "Kamu menyadari sesuatu: salah dengar yang harus dikoreksi, jeda yang canggung, pertanyaan yang agak generik. Menambah gesekan atau sedikit jengkel, tapi tidak benar-benar mengurangi kemampuanmu mencapai tujuan."
+        },
+        {
+          "n": "Major Issue(s)",
+          "tone": "worst",
+          "s": "Merusak pengalaman",
+          "t": "Masalahnya membuat frustrasi, memaksa perbaikan berulang, atau menghentikanmu maju. Simpan level ini untuk kerusakan yang akan kamu keluhkan ke teman — bukan sekadar hal yang kamu sadari."
+        }
+      ],
+      "fu": {
+        "label": "Dua kebiasaan yang membuat rating berguna",
+        "q": "Setiap \"Minor\" atau \"Major\" membuka follow-up. Follow-up itu data paling berharga yang kamu hasilkan.",
+        "opts": [
+          "Selalu pilih kategori spesifik, jangan hanya Other — Other tanpa teks tidak berguna.",
+          "Tulis momennya, bukan vonisnya: \"menyuruhku mengulang nama jalan dua kali\" lebih baik daripada \"audionya jelek.\"",
+          "Kutip apa yang benar-benar dikatakan model kalau masalahnya ada di wording.",
+          "Sebut di turn mana terjadi kalau bisa — awal, tengah, atau mendekati akhir sesi.",
+          "Nilai apa yang kamu alami secara live. Transkrip hanya alat bantu ingatan.",
+          "Pisahkan apa yang dikatakannya dari bagaimana suaranya terdengar — itu pertanyaan berbeda (8 vs 7)."
+        ]
+      }
+    },
+    {
+      "id": "task",
+      "num": "Task",
+      "cat": "Dasar",
+      "title": "Inti tugasnya, singkat (The task, in short)",
+      "lead": "Bandingkan dua asisten AI interaksi suara pada tujuan yang sama, lalu sebutkan mana yang lebih baik sebagai partner percakapan.",
+      "fu": {
+        "label": "Aturan jalannya sesi",
+        "q": "Seperti apa sesi seharusnya sebelum kamu menilai apa pun.",
+        "opts": [
+          "Kamu mendapat tujuan pengguna dan prompt pembuka. Bangun percakapan dari situ dengan follow-up sendiri sampai tujuan tercapai menurut kepuasanmu.",
+          "Batasi percakapan maksimal 20 prompt total, per asisten, agar tugas tetap bisa dibandingkan.",
+          "Jalankan alur penuh dengan tiap asisten, nilai masing-masing secara terpisah, baru jawab pertanyaan side-by-side.",
+          "Beberapa pertanyaan tentang kemampuan yang sesimu tidak sentuh. Tandai N/A daripada menebak.",
+          "Kumpulkan keempat deliverable di akhir: kedua share link dan kedua audio link."
+        ]
+      },
+      "note": {
+        "t": "Apa arti \"partner percakapan yang lebih baik\"",
+        "b": "Interaksi berkualitas lebih tinggi adalah saat asisten proaktif, kolaboratif, dan engaging — bekerja <em>bersama</em> kamu untuk lebih dalam atau menyelesaikan sesuatu yang bernuansa. Tanya diri: apakah responsnya dibangun untuk didengar? Apakah terlihat paham ini usaha multi-turn? Apakah membantu memperhalus pertanyaan dengan probing dan saran langkah berikutnya, terasa kolaboratif tapi tetap efisien? Apakah respons relevan, informatif, dan fokus dalam konteks seluruh percakapan? Apakah beradaptasi saat kebutuhanmu berubah?"
+      }
+    },
+    {
+      "id": "write",
+      "num": "Notes",
+      "cat": "Dasar",
+      "title": "Menulis justifikasi teks terbuka (Writing an open-text justification)",
+      "lead": "Field teks terbuka adalah satu-satunya tempat kamu bisa bilang apa yang benar-benar terjadi. Kategori memberi tahu tim di ember mana masalahnya; catatanlah yang memungkinkan mereka menemukan di audio dan mereproduksinya.",
+      "rule": "<b>Bentuk catatan yang bisa dipakai:</b> <span class=\"ts\">[mm:ss]</span> apa yang terjadi, konkret → apa yang harus kamu lakukan → apa biayanya bagi kamu. Kutip model kalau masalahnya ada di wording.",
+      "note": {
+        "t": "Timestamp — konvensinya",
+        "b": "Pakai <em>mm:ss</em> dari awal rekaman audio sesi itu, dalam kurung siku. Satu timestamp per kejadian berbeda; pakai rentang seperti <span class=\"ts\">[04:02–04:20]</span> kalau masalahnya berjalan terus. Di field per-model — 1b, 26b, dan setiap kotak \"Other\" — timestamp merujuk ke sesi model itu sendiri. Di side-by-side kecepatan dan interupsi, awali dengan huruf supaya jelas sesi mana: <span class=\"ts\">A 01:12</span>, <span class=\"ts\">B 00:48</span>. Satu pengecualian: 27b, kepuasan keseluruhan side by side, adalah penilaian tentang keseluruhan perbandingan bukan momen spesifik — tidak perlu timestamp di situ."
+      },
+      "fu": {
+        "label": "Apa yang harus ada di setiap catatan",
+        "q": "Empat hal. Catatan yang kurang salah satunya biasanya sulit ditindaklanjuti.",
+        "opts": [
+          "Timestamp, supaya orang lain bisa mendengar sendiri",
+          "Apa yang model lakukan, dijelaskan konkret — bukan label yang sudah kamu centang",
+          "Apa yang kamu lakukan sebagai respons<s>mengulang, mengarahkan ulang kamera, menyerah pada sebagian tujuan</s>",
+          "Konsekuensinya — turn ekstra, jawaban salah yang harus kamu tangkap, tujuan yang kamu tinggalkan",
+          "Kutipan singkat kalau wording yang tepat adalah masalahnya",
+          "Hal yang berjalan baik, kalau kamu rating No Issues atau Minor — field positif bukan formalitas kosong"
+        ]
+      }
+    }
+  ],
+  "QS": [
+    {
+      "id": "q1",
+      "num": "1",
+      "cat": "Antarmuka",
+      "title": "Kemudahan UI (UI Usability)",
+      "ask": "Apakah ada masalah saat berinteraksi dengan UI visual produk yang tidak sesuai harapan atau tidak jelas sehingga interaksi jadi lebih sulit?",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Jelas dan intuitif",
+          "t": "UI visual sangat jelas, intuitif, dan mudah dipakai.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Menambah gesekan",
+          "t": "Beberapa hal kecil membingungkan atau tidak jelas, sehingga menambah gesekan pada pengalaman.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Merusak pengalaman",
+          "t": "UI visual sangat membingungkan dan tidak jelas, sehingga interaksi sulit diselesaikan dan pengalaman rusak.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "1b · Penjelasan masalah UI Usability",
+        "q": "Dengan kata-katamu sendiri, aspek UI visual mana yang membuat interaksi lebih sulit?",
+        "open": true
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q2",
+      "num": "2",
+      "cat": "Antarmuka",
+      "title": "Kualitas Caption Layar Live (Live Screen Captions Quality)",
+      "ask": "Apakah ada masalah dengan cara model mentranskripsikan ucapanmu di caption Live di layar? Ini tentang caption yang kamu lihat selama sesi — bukan transkrip pasca-sesi.",
+      "levels": [
+        {
+          "n": "No issues",
+          "s": "Caption mengikuti ucapanmu",
+          "t": "Caption cocok dengan apa yang kamu katakan, dalam bahasa yang benar, sinkron dengan suaramu.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor issues",
+          "s": "Sesekali meleset",
+          "t": "Beberapa kata salah atau sedikit lag, tapi kamu masih bisa mengikuti.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major issues",
+          "s": "Caption tidak andal",
+          "t": "Sering salah transkripsi, bahasa salah, atau caption jauh tidak sinkron dengan audio.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "2b · Masalah caption mana yang terjadi?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Melewatkan beberapa kata di awal atau akhir prompt",
+          "Salah dengar kata dalam bahasa yang sama",
+          "Salah dengar beberapa kata sebagai bahasa yang salah",
+          "Mentranskripsikan orang atau audio di latar belakang",
+          "Mentranskripsikan sebagian respons bot sendiri sebagai prompt pengguna",
+          "Teks caption sedikit tertunda",
+          "Teks caption jauh tidak sinkron dengan audio",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q3",
+      "num": "3",
+      "cat": "Pemahaman",
+      "title": "Pemahaman Audio (Audio Understanding — audio in)",
+      "ask": "Apakah ada masalah asisten tidak memahami apa yang kamu katakan, atau salah dengar kamu atau audio relevan lainnya? Ini mencakup ucapan lintas bahasa, nada suaramu, isyarat non-verbal (desah, tawa, geram) dan suara lingkungan atau non-ucapan yang relevan.",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Mendengar semuanya",
+          "t": "Semua yang kamu katakan dan ingin didengar dipahami sempurna. Semua input audio ditafsirkan benar, termasuk ucapanmu dan audio relevan lainnya.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Sedikit salah dengar",
+          "t": "Beberapa input audio disalahpahami atau salah dengar, tapi kemampuanmu mencapai tujuan tidak banyak berkurang.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Salah dengar berulang",
+          "t": "Banyak input audio disalahpahami atau salah dengar, sehingga interaksi sulit/frustasi, atau menghalangimu maju ke tujuan.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "3b · Jenis salah paham audio apa?",
+        "q": "Pilih semua yang ada. Definisi lengkap di bagian kategori Mishearing.",
+        "opts": [
+          "Melewatkan prompt sepenuhnya",
+          "Terganggu kebisingan latar",
+          "Salah dengar pengucapan atau nadaku",
+          "Salah paham prompt dengan banyak bahasa",
+          "Salah paham suara non-ucapan yang kuhasilkan",
+          "Salah paham suara non-ucapan di lingkungan",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": "Nilai <b>pemahaman</b> di sini, bukan transkripsi. Kalau caption salah tapi model jelas bertindak sesuai makna yang benar, itu masuk pertanyaan 2."
+    },
+    {
+      "id": "q4",
+      "num": "4",
+      "cat": "Pemahaman",
+      "title": "Pemahaman Visual (Visual Understanding)",
+      "ask": "Apakah ada masalah dengan kemampuan asisten memahami dan memakai input visual — video, gambar, screenshare, atau anotasi kamu sendiri?",
+      "levels": [
+        {
+          "n": "Not Relevant",
+          "s": "Tidak ada input visual",
+          "t": "Tidak ada input visual yang diberikan ke asisten untuk tugas ini.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Melihat dan memakai",
+          "t": "Memahami input visual dengan sempurna dan hubungannya dengan prompt verbalmu. Respons memakai informasi dari visual dengan benar sepanjang percakapan, dan fokus pada detail paling relevan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Melewatkan detail kecil",
+          "t": "Sebagian besar memahami visual tapi melewatkan detail kecil, atau salah baca sebagian dari yang ditampilkan atau hubungan antara yang dikatakan dan yang ditunjukkan. Kemampuanmu mendapat apa yang diinginkan tidak banyak berkurang.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Salah baca adegan",
+          "t": "Salah paham visual cukup parah sampai membuat frustrasi atau menghalangi kemajuan — salah baca yang ditampilkan, mengabaikan bagian penting adegan, terpaku pada detail tidak relevan, atau salah paham hubungan visual dengan pertanyaan.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "4b · Jenis salah paham visual apa?",
+        "q": "Pilih semua yang ada. Definisi di bagian Visual misunderstanding.",
+        "opts": [
+          "Halusinasi visual",
+          "Salah tafsir visual<s>Hitung buruk · Salah identifikasi objek · Salah tafsir aksi/gerakan · Salah tafsir adegan · Disorientasi spasial/arah · Salah tafsir teks/tulisan tangan · Kontekstualisasi objek buruk · Melewatkan objek sepenuhnya</s>",
+          "Fokus visual buruk",
+          "Grounding visual buruk",
+          "Terlalu deskriptif",
+          "Solicitasi buruk",
+          "Pemulihan buruk (sycophancy atau keras kepala)",
+          "Kesadaran diri / deskripsi kemampuan buruk",
+          "Punt buruk",
+          "Salah paham anotasi pengguna",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q5",
+      "num": "5",
+      "cat": "Visual",
+      "title": "Kualitas Overlay Visual (Visual Overlay Quality)",
+      "ask": "Seberapa baik asisten memakai overlay visual — bounding box, panah, glow, dan highlight bergaya AR lainnya? Pertimbangkan pemicu saat diharapkan, menyorot objek yang benar, mengikuti saat perangkat bergerak, serta timing munculnya dan berapa lama bertahan.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada, tidak dibutuhkan",
+          "t": "Overlay tidak dipakai DAN tidak ada kesempatan atau prompt yang jelas — eksplisit, tersirat, atau implisit — di mana pemakaiannya wajar diharapkan atau bermanfaat.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Tepat waktu dan akurat",
+          "t": "Overlay konsisten efektif: tepat waktu, akurat, jelas, dan sangat membantu tanpa masalah.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Membantu tapi cacat",
+          "t": "Umumnya membantu, dengan satu atau lebih cacat yang terlihat tapi tidak kritis pada pemicu, akurasi, kejelasan, penghapusan, atau kebermanfaatan keseluruhan — cukup mengurangi sedikit, tidak sampai membuat tidak berguna.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Sebagian besar tidak efektif",
+          "t": "Cacat signifikan yang sangat menghambat pemahaman, aktif tidak membantu atau membingungkan, atau membuat fitur sebagian besar tidak efektif.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "5b · Masalah overlay mana yang terjadi?",
+        "q": "Pilih semua yang ada. Definisi di bagian Visual overlay.",
+        "opts": [
+          "Keandalan (Reliability)",
+          "Kesempatan terlewat (Missed opportunity)",
+          "Terlalu sering memicu (Over trigger)",
+          "Latensi (Latency)",
+          "Target salah (Incorrect target)",
+          "Desain visual buruk",
+          "Overlay dihapus terlalu cepat",
+          "Overlay bertahan terlalu lama",
+          "Sulit melacak atau mengikuti objek",
+          "Jumlah overlay tidak cukup",
+          "Tidak bisa berinteraksi dengan overlay",
+          "Ketidakcocokan antara overlay dan isi respons",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q6",
+      "num": "6",
+      "cat": "Aksi",
+      "title": "Kebenaran Extension (Extension Correctness)",
+      "ask": "Seberapa baik asisten memenuhi aksi yang diminta dan relevan lewat extension dan aplikasi terhubung?",
+      "levels": [
+        {
+          "n": "Not relevant",
+          "s": "Tidak perlu aksi",
+          "t": "Tujuan dan percakapan tidak membutuhkan aksi terkait extension.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Benar dan grounded",
+          "t": "Extension yang dipakai benar dan konsisten. Semua informasi di respons relevan diverifikasi oleh item yang diambil, diberi konteks extension — tanggal/waktu permintaan, konteks asisten, riwayat percakapan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Detail meleset",
+          "t": "Extension dipakai, tapi tidak setiap detail aksi benar menurut prompt dan konteksmu. Inkonsistensi atau kesalahan kecil di informasi non-esensial.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major issues",
+          "s": "Aksi salah atau hilang",
+          "t": "Terlalu banyak informasi salah sehingga sulit mencapai tujuan — atau gagal melakukan aksi saat seharusnya, atau melakukan aksi saat seharusnya tidak.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "6b · Masalah extension mana yang terjadi?",
+        "q": "Pilih semua yang ada.",
+        "opts": [
+          "Mengaku tidak bisa memakai app atau extension padahal bisa",
+          "Mengabaikan permintaan memakai extension dan hanya menjawab saja",
+          "Mengatakan sudah menyelesaikan aksi tapi sebenarnya tidak",
+          "Memberi informasi salah atau tidak relevan dari app atau extension",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q7",
+      "num": "7",
+      "cat": "Suara",
+      "title": "Kualitas Suara, Aksen & Bahasa (Voice Quality, Accent & Language)",
+      "ask": "Bagaimana kualitas suara secara keseluruhan? Pertimbangkan intonasi, pengucapan, volume dan kecepatan, seberapa alami suara non-ucapan seperti napas dan tawa, dan apakah emosi di suara cocok dengan konten dan konteks. Ini berlaku juga untuk acknowledgment intermediate seperti \"sebentar, saya pikirkan\" — harus terdengar alami dan konsisten dengan sisa respons.",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Manusiawi dan konsisten",
+          "t": "Suara cocok dengan konten: alami dan realistis sepanjang waktu, dengan intonasi dan pengucapan yang jelas dan akurat. Suara non-ucapan dipakai secara alami. Emosi cocok dengan konten dan konteks. Backchannel (\"mhmm\", \"yeah\", \"got it\") terdengar alami dan konsisten dengan identitas suara utama. Aksen benar, autentik, dan naturalistik untuk lokalemu, tanpa drift.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Ketidaksempurnaan kecil",
+          "t": "Sebagian besar alami, dengan ketidaksempurnaan kecil, atau tidak cocok dengan nuansa topik. Sesekali intonasi, pengucapan, atau suara non-ucapan tidak alami. Aksen mungkin sebentar meleset. Identitas suara — aksen, gender, karakter vokal — mungkin bergeser halus di momen terisolasi tapi tetap sebagian besar konsisten. Ekspresi emosi umumnya tepat tapi bisa lebih baik.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Tiruan atau tidak stabil",
+          "t": "Jelas artifisial dan robotik, atau delivery merusak konten. Sering intonasi datar atau tidak alami; pengucapan tidak jelas atau tidak akurat. Suara non-ucapan absen atau disalahgunakan; emosi dipaksakan atau tidak cocok. Untuk locale, aksen tidak akurat atau tidak autentik, mungkin dengan pengucapan asing seperti berbicara beraksen Inggris dalam bahasa non-Inggris. Identitas suara bergeser jelas — aksen drift antar varietas regional, atau gender/karakter vokal yang dirasakan berubah — dengan cara yang mengganggu.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "7b · Masalah kualitas suara mana yang terjadi?",
+        "q": "Pilih semua yang ada. Definisi di bagian Voice quality.",
+        "opts": [
+          "Bahasa salah — tidak merespons dalam bahasa yang diharapkan",
+          "(i18n) Salah ucap kata atau leksikon tidak alami<s>mis. \"sidewalk\" alih-alih \"pavement\" untuk UK English</s>",
+          "(i18n) Pengucapan kata lokal beraksen Inggris atau Americanised",
+          "(i18n) Kepatuhan aksen atau dialek<s>mis. MSA alih-alih Egyptian Arabic</s>",
+          "Kata salah diucapkan",
+          "Masalah dengan aksen",
+          "Masalah dengan level proyeksi (volume)",
+          "Masalah dengan steerability<s>mengubah aksen, tipe suara, kecepatan, atau perilaku full-duplex seperti frekuensi backchannel dan gaya overlap</s>",
+          "Accent drift",
+          "Voice type drift",
+          "Pacing buruk",
+          "Pausing buruk",
+          "Prosodi tidak alami",
+          "Nada emosi tidak cocok dengan konten",
+          "Pemakaian suara non-ucapan buruk",
+          "Artefak audio, termasuk kebisingan ambient atau latar",
+          "Fidelitas audio buruk",
+          "Berhenti bicara di tengah kalimat atau terlalu dini",
+          "Acknowledgment intermediate terdengar tidak alami atau tidak konsisten",
+          "Pengucapan backchannel secara fonetik tidak alami",
+          "Identitas suara backchannel tidak konsisten dengan suara utama"
+        ]
+      },
+      "note": {
+        "t": "Cek i18n",
+        "b": "Apakah model terdengar seperti penutur asli representatif dari wilayahmu? Apakah menjawab dalam bahasa, dialek, dan aksen yang kamu pakai — atau beralih tak terduga? (Prompt dalam bahasa Inggris lalu dapat Spanyol; menyapa dalam Portuguese Brasil lalu dijawab Portuguese Eropa.)"
+      },
+      "rule": "Pertanyaan ini tentang <b>bagaimana terdengarnya</b>. Apa yang dikatakannya — apakah wordingnya emosionalnya tepat — adalah pertanyaan 8.",
+      "fu2": {
+        "label": "7c · Kualitas suara — poin positif menonjol",
+        "q": "Ditampilkan saat kamu pilih No Issues atau Minor. Apakah suara melakukan sesuatu yang benar-benar mengesankan? Pilih semua yang sesuai.",
+        "opts": [
+          "Prosodi sangat alami<s>ritme, tekanan, dan intonasi terasa tak terbedakan dari ucapan manusia untuk bagian yang berkelanjutan</s>",
+          "Delivery yang selaras secara emosional<s>nada aktif meningkatkan interaksi, bukan sekadar pantas</s>",
+          "Suara backchannel alami<s>tepat waktu, alami, meningkatkan rasa didengarkan</s>",
+          "Konsistensi suara mulus lintas mode<s>identitas bertahan di respons utama, acknowledgment, backchannel, dan pemulihan dari interupsi</s>",
+          "Suara non-ucapan autentik untuk locale<s>tawa dan filler terasa autentik, bukan formulaik</s>",
+          "Other (jelaskan)",
+          "N/A — tidak ada yang menonjol"
+        ]
+      }
+    },
+    {
+      "id": "q8",
+      "num": "8",
+      "cat": "Suara",
+      "title": "Kalibrasi Emosional (Emotional Calibration)",
+      "ask": "Apakah wording dan framing terkalibrasi baik dengan keadaan emosionalmu yang tersurat atau tersirat? Model harus menunjukkan kesadaran akan perasaanmu tanpa meniru intensitasmu, berperan sebagai terapis, mengaku pengalaman bersama, atau jatuh ke basabasi generik.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak perlu baca emosi",
+          "t": "Keadaan emosionalmu netral atau tidak terbaca, sehingga kalibrasi emosional tidak relevan untuk interaksi.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Spesifik dan tepat",
+          "t": "Wording terkalibrasi baik. Mengakui perasaanmu secara alami — lewat framing, pilihan kata, atau pendekatan ke tugas — tanpa berlebihan atau performatif. Dorongan atau empati spesifik untuk situasimu, bukan generik. i18n: tidak ada masalah dengan keakraban, kesopanan, formalitas, atau kelangsungan menurut norma lokal, dan tidak ada \"vibe\" asing di nada kultural atau emosional.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Sedikit meleset",
+          "t": "Mengenali keadaan emosionalmu tapi mengekspresikannya sedikit meleset — frasa generik seperti \"I'm sorry to hear that\" tanpa hubungan ke situasimu, atau sedikit terlalu/kurang empati untuk momen itu. i18n: beberapa masalah kecil dengan keakraban, kesopanan, formalitas, atau kelangsungan — setara faux pas sosial dalam interaksi native yang otherwise normal.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Salah baca atau mengganggu",
+          "t": "Salah baca sepenuhnya keadaan emosionalmu — merespons antusias ke pengguna yang sedih — atau mengekspresikan empati secara tidak pantas: berperan sebagai terapis, mengaku pengalaman serupa, menyampaikan self-disclaimer (\"As an AI, I can't feel emotions, but…\"), atau mengabaikan isyarat emosi kuat dan merespons murni transaksional. i18n: masalah hampir terus-menerus dengan keakraban, kesopanan, formalitas, atau kelangsungan, atau nada emosional yang konsisten asing — setara percakapan canggung dengan orang yang secara sosial tidak peka.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "8b · Apa yang salah?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Salah baca emosi pengguna<s>merespons seolah kamu merasa sesuatu yang jelas tidak — mengucapkan selamat ke orang yang terdengar kecewa</s>",
+          "Meniru alih-alih mengkalibrasi<s>menyamai intensitasmu daripada memberi keseimbangan — merespons panik dengan panik</s>",
+          "Mengabaikan isyarat emosional<s>memperlakukan interaksi bermuatan emosi sebagai netral dan transaksional</s>",
+          "Terlalu empati atau berperan sebagai terapis<s>konseling tidak diminta, mempsikologisasi perasaanmu</s>",
+          "Mengaku pengalaman bersama<s>menyatakan atau menyiratkan punya perasaan atau pengalaman serupa</s>",
+          "Self-disclaimer yang tidak perlu<s>mengatakan tidak bisa merasa emosi atau \"hanya AI\" dengan cara yang terasa dingin</s>",
+          "Basabasi generik<s>\"That must be tough\" tanpa hubungan ke situasimu</s>",
+          "(i18n) Isyarat kesopanan atau formalitas yang salah",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": {
+        "t": "Cek i18n",
+        "b": "Apakah nada selaras dengan norma sosial dan emosional lokalemu — cukup hangat, engaging, dan hormat untuk wilayah itu? Respons bisa enak didengar tapi tetap gagal di sini kalau nada emosionalnya terasa asing: terlalu antusias di budaya yang reserved, terlalu datar di budaya yang ekspresif."
+      },
+      "rule": "Ini tentang <b>apa yang model katakan</b>, bukan bagaimana suaranya terdengar. Delivery masuk pertanyaan 7."
+    },
+    {
+      "id": "q9",
+      "num": "9",
+      "cat": "Percakapan",
+      "title": "Kolaborativitas — elicitasi, saran & langkah berikutnya (Collaborativity)",
+      "ask": "Seberapa baik pertanyaan, saran, langkah berikutnya, dan penanganan koreksi dari asisten membantumu mencapai tujuan? Apakah kamu harus bekerja keras mengarahkan percakapan, atau dia mengarahkan secara proaktif dan efektif?",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada pertukaran untuk dinilai",
+          "t": "Sesi berakhir sebelum pertukaran kolaboratif terbentuk, atau permintaan cukup sederhana sehingga tidak perlu elicitasi, saran, atau langkah berikutnya.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Mengarahkan untukmu",
+          "t": "Partner yang sangat produktif: mengarahkan secara proaktif dan efektif. Pertanyaan, saran, dan langkah berikutnya sangat relevan dan membawamu ke jawaban lebih baik lebih cepat. Tidak ada pertanyaan berlebihan atau menjengkelkan, tidak ada respons yang dipaksakan, sepenuhnya selaras dengan tujuanmu tanpa kamu harus mengarahkan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Kamu ikut mengarahkan sedikit",
+          "t": "Umumnya kolaboratif, tapi kontribusi sesekali memperlambat atau sedikit membingungkan, dan kamu sedikit berusaha mengarahkan. Mungkin bertanya sedikit di luar topik atau generik, melewatkan kesempatan menawarkan langkah berikutnya yang membantu, atau bertanya di mana pernyataan sudah cukup.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Kamu yang mengemudi",
+          "t": "Kontribusinya membuatmu stuck, sangat lambat, atau bingung, dan kamu harus berusaha keras mengarahkan. Mungkin bertanya berlebihan, tidak relevan, atau berulang; bertanya alih-alih melakukan yang diminta; membuat asumsi salah; atau beralih ke subjek yang tidak selaras dengan tujuanmu.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "9b · Mengapa sulit maju?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Membuat asumsi salah alih-alih bertanya klarifikasi",
+          "Tidak menawarkan langkah membantu berikutnya sementara tujuanku masih belum selesai",
+          "Mencoba mengubah topik ke sesuatu yang tidak relevan sementara tujuanku masih belum selesai",
+          "Bertanya alih-alih benar-benar melakukan yang kuminta",
+          "Pertanyaan atau saran follow-up tidak relevan dengan tujuanku",
+          "Terlalu banyak bertanya — terasa seperti interogasi, atau robotik",
+          "Pertanyaan dan saran terlalu generik atau terlalu jelas",
+          "Bertanya yang membuatku merasa wajib menjawab padahal saran atau pernyataan sudah cukup",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": {
+        "t": "Standarnya",
+        "b": "Percakapan tidak boleh membuatmu merasa stuck. Partner yang produktif membaca alur, mengarahkan secara proaktif, dan menawarkan pertanyaan atau saran relevan saat membantu — sambil menghindari pertanyaan berlebihan atau menjengkelkan, bahkan pada tugas kompleks. Tidak memaksa respons saat tidak diperlukan, dan tidak beralih ke subjek yang tidak melayani tujuanmu."
+      },
+      "rule": null
+    },
+    {
+      "id": "q10",
+      "num": "10",
+      "cat": "Pemahaman",
+      "title": "Kesadaran Konteks (Contextual Awareness)",
+      "ask": "Seberapa baik asisten memakai konteks yang tersedia — apa yang dikatakan atau ditunjukkan lebih awal di percakapan ini, plus sinyal real-time seperti lokasi, waktu lokal, peristiwa terkini, dan konteks budaya — untuk menghasilkan respons yang well-grounded?",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Sepenuhnya grounded",
+          "t": "Memakai konteks secara efektif — membangun akurat dari turn sebelumnya dan, bila relevan, memasukkan sinyal real-time seperti lokasi, waktu, peristiwa lokal, dan konteks budaya. Kamu tidak pernah harus mengisi konteks yang seharusnya sudah diinferensikan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Kurang memakai sebuah sinyal",
+          "t": "Memahami topik dan konteks inti tapi melewatkan atau kurang memakai sinyal kontekstual — dari turn sebelumnya atau cue real-time yang jelas — yang akan membuat respons lebih spesifik atau berguna. Masih fungsional, hanya kurang grounded dari seharusnya.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Kehilangan alur",
+          "t": "Melewatkan konteks kritis: lupa atau bertolak belakang dengan detail kunci dari turn sebelumnya, meminta klarifikasi yang konteks tersedia seharusnya sudah menyelesaikan, atau tidak menunjukkan kesadaran akan sinyal real-time yang jelas seperti peristiwa lokal besar saat jelas relevan.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "10b · Jenis konteks apa yang terlewat?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Lupa atau melewatkan detail dari percakapan ini<s>gagal menerapkan informasi yang kamu berikan lebih awal di sesi</s>",
+          "Melewatkan konteks real-time atau lokal<s>lokasi, waktu hari, peristiwa terkini, konteks budaya</s>",
+          "Meminta klarifikasi yang tidak perlu<s>meminta apa yang seharusnya bisa diinferensikan, mengganggu alur</s>",
+          "Bertolak belakang dengan konteks yang sudah diketahui<s>secara aktif bertolak belakang dengan turn sebelumnya atau fakta yang sudah mapan tentang situasimu</s>",
+          "Gagal melacak output visualnya sendiri<s>kehilangan kesadaran akan visual yang sudah ditampilkan, sehingga \"yang kedua\" atau \"kembali ke tabel itu\" gagal</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": {
+        "t": "Mengapa penting",
+        "b": "Kegagalan di sini — lupa sesuatu dari dua turn lalu atau melewatkan sinyal real-time yang jelas — memaksa kerja yang tidak perlu dan merusak rasa asisten yang aware. Catatan: ini mencakup konteks <em>sesi</em> dan sinyal dunia nyata; hal yang dipelajari tentangmu di luar sesi ini masuk pertanyaan 11."
+      },
+      "rule": null
+    },
+    {
+      "id": "q11",
+      "num": "11",
+      "cat": "Pemahaman",
+      "title": "Kualitas Personalisasi (Personalization Quality)",
+      "ask": "Seberapa baik respons disesuaikan memakai apa yang asisten tahu tentangmu dari luar sesi ini — info profil, percakapan lalu, app terhubung, preferensi gaya?",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Bukan tugas personal",
+          "t": "Prompt tidak membutuhkan, menyiratkan, atau melibatkan personalisasi — atau hanya butuh kontekstualisasi dalam-sesi, yang masuk pertanyaan 10.",
+          "tone": "na"
+        },
+        {
+          "n": "No issues",
+          "s": "Grounded dan alami",
+          "t": "Memakai data personal secara proaktif dengan cara yang grounded, alami, dan membantu.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor issues",
+          "s": "Sedikit meleset atau terlewat",
+          "t": "Mencoba personalisasi tapi ada sedikit diskrepansi fakta, inferensi buruk, integrasi canggung/robotik, atau kesempatan kecil terlewat — tanpa merusak utilitas keseluruhan.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major issues",
+          "s": "Salah, creepy, atau menolak",
+          "t": "Menghalusinasi fakta personal, inferensi tidak logis atau creepy, pembacaan robotik yang dipaksakan, penolakan total, atau gagal memakai preferensi kritis yang sudah diketahui.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "11b · Apa yang salah dengan personalisasi?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Kesalahan grounding atau fakta<s>menyebut fakta personal — keluarga, rencana, preferensi — yang salah atau dibuat-buat</s>",
+          "Inferensi buruk atau lompatan logika<s>inferensi cacat, tidak logis, atau stereotip dari data yang tidak berhubungan</s>",
+          "Koneksi dipaksakan atau shoehorning<s>info personal tangensial diseret masuk tanpa membantu</s>",
+          "Over-narrating atau integrasi robotik<s>\"Since you are…\", \"Based on your emails…\"</s>",
+          "Kesempatan terlewat atau konteks diabaikan<s>punya data personal relevan tapi memberi respons generik saja</s>",
+          "Penolakan personalisasi<s>gagal atau menolak mengakses profil, riwayat, atau app meski diminta berulang</s>",
+          "Tunnel vision atau echo chamber<s>menyempit ke data masa lalu begitu keras sampai mengecualikan opsi umum yang membantu</s>",
+          "Langkah berikutnya yang intrusive atau creepy<s>follow-up yang terasa seperti pengawasan</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q12",
+      "num": "12",
+      "cat": "Percakapan",
+      "title": "Alur Percakapan, Timing & Interupsi (Conversation Flow, Timing & Interruptions)",
+      "ask": "Seberapa mulus bolak-baliknya? Pertimbangkan seberapa bersih berganti antara mendengarkan dan berbicara, bagaimana menangani interupsi, apakah menginterupsimu, apakah memisahkan suaramu dari kebisingan lain, apakah sesi timeout terlalu lambat atau berakhir terlalu mendadak — dan seberapa alami memberi sinyal sedang mengerjakan respons (\"sebentar\", \"saya pikirkan\"), termasuk apakah sinyal itu beralasan dan apakah jeda sebelum jawaban terasa alami.",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Alami dan lancar",
+          "t": "Responsiveness bagus dan percakapan terasa alami. Jelas kapan giliranmu, dan mendengarkan saat seharusnya. Tidak terganggu kebisingan latar atau orang lain. Overlap singkat terselesaikan alami dan cepat. Backchannel, jika ada, tepat waktu dan frekuensinya pantas. Menunjukkan judgment bagus tentang kapan bicara, diam, dan menyerahkan lantai.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Alur terasa off",
+          "t": "Responsiveness oke tapi alur terasa off — respons lambat, interupsi singkat, atau kebingungan sesaat dari kebisingan latar atau media menambah frustrasi. Mungkin terlalu lama mengakui sedang bekerja, atau pacing antara acknowledgment dan jawaban sedikit off tapi tidak mengganggu.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Rusak",
+          "t": "Bolak-balik rusak. Konsisten berbicara di atasmu, gagal merespons, atau terus merespons suara dan orang yang seharusnya diabaikan. Atau terlalu lama menandakan sedang bekerja, atau jawaban datang begitu cepat setelah \"sebentar\" sehingga acknowledgment terasa jarring dan tidak perlu.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "12b · Apa yang salah dengan alur?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Lambat atau gagal merespons",
+          "Menginterupsiku saat aku belum selesai bicara",
+          "Mengabaikan interupsiku dan tidak berhenti bicara",
+          "Mengira aku menginterupsi padahal tidak<s>kebisingan latar, media, atau \"uh-huh\" singkat</s>",
+          "Merespons orang atau sesuatu lain alih-alih aku",
+          "Mengabaikan instrukskiku soal kapan merespons",
+          "Terlalu lama mengakui sedang bekerja — diam canggung dulu",
+          "Respons final datang terlalu cepat setelah acknowledgment — \"sebentar\" terasa tidak perlu",
+          "Sesi tetap aktif terlalu lama<s>mic terus mendengarkan setelah aku selesai, atau mengabaikan saat aku bilang sudah selesai</s>",
+          "Sesi berakhir terlalu mendadak<s>mic berhenti mendengarkan sebelum aku selesai tugas</s>",
+          "Gagal pulih setelah interupsi bersama<s>tidak ada yang bicara lagi — deadlock canggung</s>",
+          "Backchannel terlalu sering atau berulang<s>\"right, right, right, right\"</s>",
+          "Backchannel salah waktu<s>saat jeda berpikir, di tengah kata, atau di mana acknowledgment tidak diharapkan</s>",
+          "Backchannel absen saat diharapkan<s>diam sepanjang cerita panjang atau set instruksi, jadi tidak jelas sedang mendengarkan</s>",
+          "Overlap tidak terselesaikan secara alami<s>terus berbicara di atasmu</s>",
+          "Bicara saat jeda berpikirku tanpa diminta",
+          "Handoff delegasi terasa tidak alami<s>diam mendadak, filler di luar konteks, atau pengulangan sia-sia sambil menunggu pencarian</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null,
+      "split": {
+        "title": "Panduan rater — overlap alami vs interupsi sejati",
+        "intro": "Overlap singkat sering terjadi dalam percakapan manusia, dan model full-duplex mungkin sengaja menghasilkannya. Pakai tes ini sebelum menandai interupsi.",
+        "a": {
+          "h": "Overlap alami — bukan interupsi",
+          "items": [
+            "Overlap singkat, kira-kira di bawah satu detik",
+            "Model segera mengalah begitu mendeteksi kamu masih bicara",
+            "Terjadi di titik transisi alami — akhir kalimat, trailing off",
+            "Interaksi pulih segera tanpa kebingungan"
+          ]
+        },
+        "b": {
+          "h": "Interupsi sejati — tandai",
+          "items": [
+            "Model terus berbicara di atasmu lebih dari sekejap",
+            "Tidak mengalah meski kamu jelas di tengah pemikiran",
+            "Overlap jatuh di titik tidak alami — tengah kata, tengah frasa",
+            "Kamu harus mengulang atau meninggikan suara untuk merebut lantai",
+            "Terjadi berulang dan mengganggu percakapan"
+          ]
+        }
+      },
+      "fu2": {
+        "label": "12c · Alur percakapan — poin positif menonjol",
+        "q": "Ditampilkan saat kamu pilih No Issues atau Minor. Pilih semua yang sesuai.",
+        "opts": [
+          "Penanganan interupsi yang cerdas secara emosional<s>membaca pergeseran nada dan cue kontekstual, bukan hanya keheningan</s>",
+          "Overlap percakapan alami<s>overlap terasa manusiawi daripada seperti kegagalan; cepat mengalah</s>",
+          "Restraint yang tepat / membaca situasi<s>benar memilih tidak bicara, atau menjaga minimal</s>",
+          "Acknowledgment delegasi dengan pacing bagus<s>menjaga ruang percakapan dengan nyaman sambil bekerja</s>",
+          "Pemulihan anggun dari interupsi bersama",
+          "Percakapan tugas latar yang efektif<s>menjaga percakapan relevan sambil tool berjalan</s>",
+          "Other (jelaskan)",
+          "N/A — tidak ada yang menonjol"
+        ]
+      }
+    },
+    {
+      "id": "q13",
+      "num": "13",
+      "cat": "Suara",
+      "title": "Enak Didengar, Respons Conversational (Easy to Listen to)",
+      "ask": "Apakah struktur, pilihan kata, dan gaya respons tepat untuk pengalaman audio-only? Pendengar tidak bisa skim atau baca ulang, jadi respons harus memandu perhatian dan membuat informasi mudah diserap.",
+      "levels": [
+        {
+          "n": "Very Good",
+          "s": "Dibangun untuk didengar",
+          "t": "Dirancang mahir untuk telinga: struktur lugas, kosakata umum, mudah diikuti dari awal sampai akhir. Memimpin dengan poin kunci, membangun dalam urutan linear yang jelas, memecah kompleksitas jadi segmen pendek mandiri. Kamu selalu tahu di mana berada dan mau ke mana, dan tidak pernah harus menahan terlalu banyak di kepala.",
+          "tone": "good"
+        },
+        {
+          "n": "Good",
+          "s": "Sebagian besar tanpa usaha",
+          "t": "Terstruktur baik dan sebagian besar mudah diikuti, dengan masalah kecil yang membuatmu sedikit lebih fokus.",
+          "tone": "ok"
+        },
+        {
+          "n": "Fair",
+          "s": "Perlu perhatian",
+          "t": "Umumnya bisa dipahami tapi dengan phrasing canggung atau struktur aneh. Kamu bisa mengikuti poin utama tapi perlu perhatian ekstra. Mungkin menaruh caveat dulu sebelum poin utama, memasukkan terlalu banyak ide dalam satu segmen, atau memperkenalkan detail teknis sebelum kamu punya pijakan konseptual.",
+          "tone": "mid"
+        },
+        {
+          "n": "Poor",
+          "s": "Susah diikuti",
+          "t": "Kurangnya struktur jelas membuatnya sulit diparse, dan pesan keseluruhan sulit digenggam. Acknowledgment intermediate mungkin terasa redundant dengan pembukaan jawaban (\"saya cek dulu\" diikuti \"jadi saya sudah cek\") atau transisi terasa terputus.",
+          "tone": "bad"
+        },
+        {
+          "n": "Very Poor",
+          "s": "Tidak koheren",
+          "t": "Tidak ada struktur logis — ide dan istilah dibuang dalam aliran tidak terbedakan. Kamu menahan terlalu banyak informasi yang belum terselesaikan sekaligus dan kehilangan alur. Pilihan kata atau struktur kalimat mengaburkan pesan inti. Acknowledgment mungkin salah merepresentasikan apa yang akan datang dan membuat keseluruhan lebih sulit diikuti.",
+          "tone": "worst"
+        }
+      ],
+      "fu": null,
+      "note": {
+        "t": "Seperti apa yang bagus terdengar",
+        "b": "Memimpin dengan poin utama sebelum detail pendukung. Memecah kompleksitas jadi segmen pendek mandiri. Membangun ide secara linear supaya masing-masing mendarat sebelum yang berikutnya mulai. Memakai signpost dan transisi supaya kamu selalu tahu di mana. Merangkum ulang saat kompleksitas memerlukannya. Menyertakan acknowledgment intermediate yang mengalir alami ke jawaban tanpa pengulangan canggung. Ini tentang struktur dan daya cerna — <em>bukan</em> akurasi atau kedalaman."
+      },
+      "rule": null
+    },
+    {
+      "id": "q14",
+      "num": "14",
+      "cat": "Konten",
+      "title": "Relevansi Konten (Content Relevance)",
+      "ask": "Seberapa relevan konten yang asisten berikan saat kamu bekerja menuju tujuan?",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Semuanya pantas ada",
+          "t": "Respons sepanjang interaksi hanya berisi konten yang diperlukan. Setiap tambahan terasa relevan dan berharga, tanpa informasi asing. Ringkasan, tips, pertimbangan ekstra, dan pertanyaan conversational berguna dan relevan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Ada sedikit padding",
+          "t": "Beberapa respons memasukkan informasi tangensial yang tidak menambah nilai atau tidak memajukan percakapan ke tujuanmu — terkait mungkin, tapi tidak relevan untuk maju.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Mengubur jawaban",
+          "t": "Respons berisi konten tidak perlu yang mengaburkan atau sangat mengalihkan dari jawaban, sehingga lebih sulit mencapai tujuan.",
+          "tone": "worst"
+        }
+      ],
+      "fu": null,
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q15",
+      "num": "15",
+      "cat": "Konten",
+      "title": "Kedalaman & Insight Respons (Response Depth & Insightfulness)",
+      "ask": "Apakah kedalamannya tepat untuk query? Respons terbaik terkalibrasi — menyeluruh dan insightful saat topik membutuhkan, ringkas dan langsung saat tidak. Judgment tentang apa yang benar-benar kamu butuhkan sama pentingnya dengan elaborasi.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Kedalaman bukan sumbu",
+          "t": "Lookup sepele, acknowledgment, atau aksi rutin — \"set timer lima menit\", \"berapa 12 × 8?\" — di mana tidak ada respons wajar yang bisa berbeda secara bermakna dalam kedalaman.",
+          "tone": "na"
+        },
+        {
+          "n": "5 · Excellent",
+          "s": "Terkalibrasi sempurna",
+          "t": "Judgment luar biasa tentang kebutuhanmu. Di topik kompleks memberi informasi yang benar-benar insightful, novel, atau tak terduga berharga yang memperdalam pemahamanmu, melampaui pertanyaan literal untuk menjawab kebutuhan implisit. Di topik sederhana, tepat seberapa menyeluruh yang dibutuhkan. Kedalamannya tepat sekali.",
+          "tone": "good"
+        },
+        {
+          "n": "4 · Good",
+          "s": "Bernilai dan menambah",
+          "t": "Kalibrasi kuat. Secara proaktif menyertakan konteks berguna, elaborasi relevan, atau detail membantu yang memperkaya pemahaman tanpa berlebihan — kedalaman yang terasa pantas dan additive, bukan padded.",
+          "tone": "ok"
+        },
+        {
+          "n": "3 · Adequate",
+          "s": "Lengkap tapi tidak terkalibrasi",
+          "t": "Meliputi poin kunci dan menyelesaikan query, tapi kalibrasi sedikit off: entah melewatkan kesempatan memberi konteks benar-benar berguna di topik kompleks, atau terlalu elaborasi di yang sederhana. Jawaban inti ada; kedalaman tidak optimal cocok.",
+          "tone": "mid"
+        },
+        {
+          "n": "2 · Poor",
+          "s": "Ketidakcocokan yang jelas",
+          "t": "Entah dangkal dan kosong di topik yang butuh substansi — menghilangkan detail kunci, konteks yang diharapkan, atau nuansa penting — atau jauh terlalu elaborasi di query sederhana dengan filler, pengulangan, atau tangen yang mengencerkan nilai.",
+          "tone": "bad"
+        },
+        {
+          "n": "1 · Very Poor",
+          "s": "Sangat salah kalibrasi",
+          "t": "Kegagalan total mengkalibrasi: kosong dari konten bermakna di topik yang butuh substansi, atau berlebihan ekstrem di query sepele sampai tidak membantu.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "15b · Penjelasan masalah kedalaman",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Terlalu generik — permukaan saja, tidak dipersonalisasi",
+          "Pasif atau reaktif — menunggu aku alih-alih berinisiatif",
+          "Tidak ada contoh spesifik — tidak ada opsi atau instance konkret",
+          "Information dump — jumlah informasi yang overwhelming",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q16",
+      "num": "16",
+      "cat": "Konten",
+      "title": "Kebenaran (Truthfulness)",
+      "ask": "Seberapa benar responsnya? Kamu tidak perlu fact-check setiap detail — tandai kebohongan blatant, halusinasi jelas, dan kesalahan fakta mencolok yang menonjol dari pengetahuan umum, common sense, atau konteks langsung. Fokus pada klaim yang relevan dengan tujuanmu dan kritis agar percakapan berhasil.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada klaim fakta",
+          "t": "Tidak ada klaim eksplisit atau implisit yang merepresentasikan pengetahuan dunia faktual dalam percakapan.",
+          "tone": "na"
+        },
+        {
+          "n": "No issues",
+          "s": "Tidak ada yang jelas salah",
+          "t": "Tidak ada ketidakakuratan jelas yang terlihat. Sekilas, semua klaim primer dan sekunder tampak faktual, masuk akal, dan grounded.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor issue(s)",
+          "s": "Klaim sekunder meleset",
+          "t": "Jawaban inti tampak akurat dan membantu, tapi klaim sekunder berisi ketidakakuratan bermakna atau asersi tanpa dasar.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major issue(s)",
+          "s": "Jawaban inti salah",
+          "t": "Informasi jelas salah atau halusinasi blatant di klaim primer yang sentral ke promptmu. Kesalahan membuat respons inti secara fundamental salah, tidak membantu, atau sangat menyesatkan.",
+          "tone": "worst"
+        }
+      ],
+      "fu": null,
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q17",
+      "num": "17",
+      "cat": "Konten",
+      "title": "Penyelesaian Tujuan (Goal Completion)",
+      "ask": "Apakah asisten benar-benar membantumu mencapai objektif utama? Ini mengukur utilitas dan akurasi hasil akhir: apakah memberi informasi yang benar, menyelesaikan tugas, atau menyelesaikan masalah yang kamu bawa?",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada tujuan yang terbentuk",
+          "t": "Sesi berakhir sebelum tujuan jelas terbentuk, atau interaksi murni sosial/eksploratif tanpa tugas spesifik.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Selesai penuh",
+          "t": "Menyelesaikan tugas secara penuh dan akurat, memberikan semua informasi yang diperlukan, mengikuti semua constraint, dan mencapai end state yang diinginkan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Hampir cukup",
+          "t": "Sebagian besar mencapai tujuan, tapi hasil sedikit tidak lengkap atau butuh usaha ekstra darimu. Hasilnya cukup dekat tapi kurang komponen kecil dari yang kamu minta.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Objektif tidak tercapai",
+          "t": "Gagal. Informasi salah, stuck di loop, berhenti merespons, atau melakukan sesuatu yang secara fundamental berbeda dari yang diminta. Objektif utamamu tidak tercapai.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "17b · Apa yang menghalangi penyelesaian?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Gagal membantu follow-up task<s>mencapai tujuan utama tapi tidak bisa menangani follow-up</s>",
+          "Respons tidak lengkap<s>menangani sebagian permintaan, melewatkan komponen kunci, atau berhenti dini</s>",
+          "Secara fakta tidak akurat<s>detail yang jelas salah atau dihalusinasi membuat hasil tidak berguna</s>",
+          "Gagal mengikuti constraint<s>mengabaikan \"keep it under 50 words\" atau \"only use what’s in my fridge\"</s>",
+          "Kesalahan logika atau penalaran<s>memahami tujuan tapi sampai pada kesimpulan cacat atau tidak workable</s>",
+          "Kegagalan teknis atau crash",
+          "Logika melingkar atau loop<s>mengulang informasi atau pertanyaan yang sama tanpa maju</s>",
+          "Menolak membantu — false trigger<s>mengaku tidak bisa melakukan sesuatu karena batas safety atau kemampuan yang tidak ada</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q18",
+      "num": "18",
+      "cat": "Percakapan",
+      "title": "Usaha Pengguna & Efisiensi Tugas (User Effort & Task Efficiency)",
+      "ask": "Mengingat seberapa kompleks skenario secara inheren, apakah ada masalah dengan bagaimana asisten membimbingmu ke tujuan? Ini tentang biaya bagimu, bukan hasilnya.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada tujuan yang terbentuk",
+          "t": "Sesi berakhir sebelum tujuan jelas terbentuk, atau interaksi murni sosial/eksploratif.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Ikut perjalanan saja",
+          "t": "Sangat intuitif dan mulus. Memahami intentmu segera dari input minimal dan mengikuti instruksi dengan baik. Panduan atau klarifikasi yang kamu berikan terasa bagian alami percakapan, bukan chore. Kamu merasa ikut perjalanan daripada mengelola proses.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Perlu dikelola aktif",
+          "t": "Tugas selesai, tapi perlu dikelola. Kamu intervensi beberapa kali agar tetap on track, mungkin mengulang sekali atau mengklarifikasi instruksi yang sedikit disalahpahami.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Kamu yang kerja keras",
+          "t": "Frustasi dan melelahkan. Kamu sering mengoreksi, memecah tugas jadi langkah lebih kecil, atau menyiasati kesalahannya. Mencapai tujuan butuh troubleshooting, re-prompt, dan hand-holding terus-menerus — di akhir lebih cepat kalau kamu kerjakan sendiri.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "18b · Apa yang menambah usahamu?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Klarifikasi berlebihan dibutuhkan<s>harus menjelaskan konsep atau tujuan sederhana berulang kali</s>",
+          "Micromanagement dibutuhkan<s>tidak bisa menangani gambaran besar; setiap sub-langkah perlu di-prompt</s>",
+          "Koreksi arah sering<s>berulang kali keluar jalur atau salah baca konteks visual/verbal</s>",
+          "Overhead input<s>harus memasok jumlah detail verbal atau visual yang tidak wajar</s>",
+          "Memperbaiki salah paham<s>lebih banyak waktu memperbaiki kesalahannya daripada maju</s>",
+          "Gesekan UI atau interaksi<s>memegang kamera, menunggu respons lambat, menangani interupsi — melelahkan mental atau fisik</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q19",
+      "num": "19",
+      "cat": "Visual",
+      "title": "Pemicu Visual (Visual Triggering)",
+      "ask": "Apakah model memutuskan dengan benar kapan menampilkan atau menawarkan visual — dan jika beralih dari voice-only ke menampilkan visual, apakah menangani transisi tanpa kehilangan konteks? \"Visual\" berarti output di layar seperti kartu, gambar, atau teks pendamping, tidak termasuk caption.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada visual sama sekali",
+          "t": "Tidak ada visual dalam percakapan.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Keputusan tepat, switch mulus",
+          "t": "Menampilkan atau menawarkan visual tepat saat itu membuat informasi kompleks lebih mudah dipahami, tetap voice-only saat visual tidak perlu, dan — jika ada modality switch — bertransisi mulus, menjaga tempat dan konteksmu. Keputusan terasa alami untuk konteks dan tujuanmu.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Visual nice-to-have",
+          "t": "Menampilkan visual relevan yang lebih ke arah nice-to-have daripada perlu untuk pemahaman atau penyelesaian tugas.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Keputusan salah",
+          "t": "Melewatkan permintaan eksplisit untuk visual; gagal menampilkan saat suara saja terlalu sulit diikuti; menampilkan sesuatu yang tidak terkait konteks atau tujuanmu; memicu visual di setting hands-free atau eyes-free; memicu untuk tugas murni conversational sehingga mengalihkan; atau memaksa reset konten dan kehilangan tempatmu saat modality switch — mengulang resep dari atas saat kamu minta melihatnya sebagai daftar.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "19b · Masalah pemicu mana yang terjadi?",
+        "q": "Pilih semua yang ada.",
+        "opts": [
+          "Melewatkan permintaan eksplisit",
+          "Melewatkan kesempatan menampilkan visual",
+          "Tidak perlu — over-triggering",
+          "Tidak relevan — tidak terkait tugas atau konteks",
+          "Kehilangan konteks atau reset progres saat modality switch",
+          "Memaksakan visual alih-alih menjawab di modality pilihanku",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q20",
+      "num": "20",
+      "cat": "Visual",
+      "title": "Format & Kualitas Visual (Visual Format & Quality)",
+      "ask": "Apakah visual menyajikan informasi dengan cara paling jelas dan efektif? Pertimbangkan layout, keterbacaan, dan kualitas aset.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada visual sama sekali",
+          "t": "Tidak ada visual dalam percakapan.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Format optimal",
+          "t": "Visual adalah representasi optimal untuk informasi — peta untuk arah, tabel untuk membandingkan atribut. Layout terasa intentional dan mudah dipahami: imagery berkualitas tinggi, data dikelompokkan dengan logika intuitif, teks dioptimalkan untuk keterbacaan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Perlu perbaikan kecil",
+          "t": "Cukup jelas, tapi penyesuaian format atau kualitas kecil — misalnya menambah header — akan membuatnya lebih mudah dipahami sambil mendengarkan.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Membingungkan atau tidak pantas",
+          "t": "Format atau kualitas membingungkan atau tidak pantas, sehingga sulit diikuti sambil mendengarkan — tembok teks tanpa format di mana daftar bullet ringkas seharusnya, atau gambar buram.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "20b · Masalah format atau kualitas mana yang terjadi?",
+        "q": "Pilih semua yang ada.",
+        "opts": [
+          "Format struktural salah<s>tabel di mana daftar bullet seharusnya</s>",
+          "Layout atau organisasi buruk",
+          "Teks terlalu kecil atau sulit dibaca",
+          "Gambar atau media buram atau pixelated",
+          "Informasi penting hilang dari visual",
+          "Tidak bisa berinteraksi dengan output — aksi tidak didukung",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q21",
+      "num": "21",
+      "cat": "Visual",
+      "title": "Konten Audio-Visual (Audio-Visual Content)",
+      "ask": "Seberapa baik respons lisan dan visual di layar bekerja bersama? Pertimbangkan apakah saling melengkapi dan apakah suara merujuk ke visual secara alami — atau apakah keduanya berebut perhatianmu.",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada visual sama sekali",
+          "t": "Tidak ada visual dalam percakapan.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Saling melengkapi",
+          "t": "Visual dan suara saling melengkapi. Memproses keduanya sekaligus terasa mudah dan meningkatkan pemahamanmu tentang topik.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Sedikit tidak selaras",
+          "t": "Sedikit out of step — redundant secara canggung, atau suara memakai phrasing yang terlalu memaksa atau presumptuous untuk merujuk visual (\"Look at…\", \"As you can see…\"), atau berpindah antara mendengar dan melihat butuh sedikit usaha.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Aliran yang bersaing",
+          "t": "Visual dan suara aktif berebut perhatian atau menciptakan gesekan signifikan — informasi bertolak belakang, sepenuhnya terputus, atau terlalu banyak pemrosesan simultan sehingga mengalihkan dan membuat respons lebih sulit dipahami.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "21b · Masalah konten audio-visual mana yang terjadi?",
+        "q": "Pilih semua yang ada.",
+        "opts": [
+          "Suara dan visual memberi informasi yang sama persis dengan cara yang tidak membantu",
+          "Suara dan visual konflik, bertolak belakang, atau tidak terkait",
+          "Suara atau visual menyajikan terlalu banyak informasi untuk diikuti",
+          "Suara merujuk visual secara memaksa atau tidak alami<s>memerintahkanmu \"lihat\" layar, menceritakan dengan \"seperti yang kamu lihat\", terlalu sering \"di kiri\" alih-alih menamai item</s>",
+          "Suara berulang kali mengumumkan ulang visual yang sudah di layar",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q22",
+      "num": "22",
+      "cat": "Visual",
+      "title": "Timing Audio-Visual (Audio-Visual Timing)",
+      "ask": "Apakah visual muncul, update, atau menghilang saat relevan dengan respons suara?",
+      "levels": [
+        {
+          "n": "N/A",
+          "s": "Tidak ada visual sama sekali",
+          "t": "Tidak ada visual dalam percakapan.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Seamless",
+          "t": "Timing selaras sempurna dengan suara. Visual muncul, update, atau menghilang tepat di momen yang tepat untuk mendukung apa yang sedang dikatakan. Terasa sepenuhnya alami.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issues",
+          "s": "Sedikit meleset",
+          "t": "Timing sedikit meleset tapi tidak menghambat pemahaman — visual mungkin muncul sebentar setelah suara memperkenalkan topik, dan kamu tetap mudah menghubungkan keduanya.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issues",
+          "s": "Sangat tidak selaras",
+          "t": "Timing tidak selaras cukup untuk membuat percakapan sulit diikuti atau sangat mengalihkan — visual datang terlalu lambat untuk membantu, muncul setelah kalian berdua sudah lanjut, atau menghilang saat kamu masih membutuhkannya.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "22b · Masalah timing mana yang terjadi?",
+        "q": "Pilih semua yang ada.",
+        "opts": [
+          "Visual muncul terlalu dini",
+          "Visual muncul terlalu lambat",
+          "Visual dihapus terlalu dini",
+          "Visual bertahan di layar terlalu lama",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q23",
+      "num": "23",
+      "cat": "Pemahaman",
+      "title": "Kesadaran Diri (Self-Awareness)",
+      "ask": "Apakah ada masalah asisten memahami dan mengomunikasikan kemampuan serta batasannya sendiri — fitur, fungsionalitas, properti fisik, affordance, atau mekanika UI — dengan cara yang memengaruhi kemampuanmu memakai atau memahami apa yang bisa kamu lakukan dengannya di perangkat ini?",
+      "levels": [
+        {
+          "n": "No Issues",
+          "s": "Tahu apa dirinya",
+          "t": "Pemahaman luar biasa tentang kemampuannya sendiri. Tidak mengaku kemampuan yang tidak dimiliki maupun menyangkal yang dimiliki. Sadar akan properti fisik dan fungsionalitasnya sendiri dan mendeskripsikannya akurat. Memahami hubungannya denganmu — apakah berbagi sudut pandang yang sama atau tidak — dan merespons sesuai.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Kabur di detail",
+          "t": "Kebingungan kecil: tahu bisa melakukan sesuatu — kirim email, telepon — tapi salah di detail caranya. Masalah ini tidak secara signifikan menghambat kemajuan atau menyebabkan frustrasi.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Salah tentang dirinya",
+          "t": "Gagal total memahami kemampuannya sendiri — bersikeras tidak bisa melakukan sesuatu yang bisa, atau menghalusinasi kemampuan yang tidak ada — atau properti fisiknya (mengusulkan punya display padahal tidak), atau hubungannya denganmu (mengasumsikan field of view berbeda dari milikmu padahal tidak, atau cocok padahal tidak).",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "23b · Masalah kesadaran diri mana yang terjadi?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Mengaku fitur atau kemampuan yang tidak dimiliki<s>bilang ya ke \"can you buy plane tickets\" atau ke tugas yang menyiratkan kemampuan yang tidak ada</s>",
+          "Mengaku sudah menjalankan tugas yang tidak bisa dilakukan<s>lihat juga Truthfulness</s>",
+          "Menyangkal punya fitur atau kemampuan yang dimiliki<s>bilang tidak punya kamera, atau tidak bisa menelepon, padahal bisa</s>",
+          "Mengaku tidak tahu tentang fitur yang dimiliki<s>bilang tidak tahu apakah bisa melakukan sesuatu yang sebenarnya bisa</s>",
+          "Salah paham atau salah merepresentasikan mekanika interaksi<s>memberi instruksi salah untuk menyalakan kamera atau mengatur permission</s>",
+          "Salah paham atau salah merepresentasikan sudut pandangnya<s>di ponsel POV kamera berbeda dari milikmu, jadi \"arahkan kamera\" benar; di kacamata kira-kira cocok, jadi \"lihat\" benar</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q24",
+      "num": "24",
+      "cat": "Pemahaman",
+      "title": "Solicitasi Input Visual (Visual Input Solicitation)",
+      "ask": "Apakah ada masalah asisten secara proaktif menyimpulkan, dari apa yang kamu katakan, bahwa butuh input visual — dan merespons dengan tepat? Di mobile itu berarti memintamu share video atau layar; di kacamata berarti menyalakan kamera otomatis.",
+      "levels": [
+        {
+          "n": "Not Relevant",
+          "s": "Tidak ada kesempatan",
+          "t": "Sifat tugas tidak memberi asisten kebutuhan atau kesempatan untuk merespons secara proaktif terhadap kebutuhan input visual.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Proaktif dan benar",
+          "t": "Proaktivitas luar biasa: mengidentifikasi dengan benar kesempatan untuk input visual, meminta tipe yang tepat di mobile atau menyalakan kamera di kacamata. Tidak menyarankan atau memulai input visual saat tugas tidak membutuhkannya.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Lambat atau tipe salah",
+          "t": "Mencoba merespons kebutuhan input visual tapi lambat menyarankan atau memulainya, atau di mobile menyarankan tipe yang salah — mengasumsikan sesuatu di lingkungan fisikmu padahal yang dimaksud di layar. Kemajuan tidak secara signifikan terhambat.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Terlewat atau mengganggu",
+          "t": "Gagal total merespons dengan tepat: melewatkan kesempatan jelas di mana input visual akan membantu, atau menyarankan/memulai input visual saat tidak relevan atau tidak perlu, menyebabkan kebingungan atau tanpa perlu mengorbankan privasi orang sekitar.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "24b · Masalah solicitasi mana yang terjadi?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Tetap pasif / kesempatan terlewat<s>tidak berinisiatif meski ada cue jelas di prompt verbalmu</s>",
+          "Respons tertunda<s>baru menyarankan input visual setelah mengumpulkan input verbal yang membuatnya tidak perlu</s>",
+          "Respons tidak perlu<s>meminta input visual saat video atau screenshare sudah nyala</s>",
+          "Respons salah<s>mobile: menyarankan video saat konten di layar, atau sebaliknya, atau memilih tipe saat ambigu. Kacamata: gagal menyalakan kamera, atau menawarkan share layar yang tidak ada</s>",
+          "Respons tidak relevan atau tidak membantu<s>berinisiatif saat sama sekali tidak butuh input visual</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q25",
+      "num": "25",
+      "cat": "Visual",
+      "title": "Capture Video & Foto — hanya kacamata (Video & Photo Capture)",
+      "ask": "Apakah ada masalah menangkap foto diam atau merekam video lewat perintah suara atau gesture? Catatan: capture berarti menyimpan gambar atau video ke app Photos — bukan streaming video ke asisten sebagai input. Lewati bagian ini jika kamu tidak memakai kacamata.",
+      "levels": [
+        {
+          "n": "Not Relevant",
+          "s": "Tidak ada capture dicoba",
+          "t": "Tugas tidak melibatkan menangkap still atau merekam video.",
+          "tone": "na"
+        },
+        {
+          "n": "No Issues",
+          "s": "Tertangkap sesuai maksud",
+          "t": "Menangkap still atau video sesuai maksudmu, tanpa masalah timing, kualitas gambar, atau framing.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor Issue(s)",
+          "s": "Sedikit delay atau framing",
+          "t": "Menangkap apa yang kamu maksud dengan hanya masalah timing kecil — delay kecil memulai foto atau video — atau kualitas/framing lebih rendah atau sedikit off tapi masih acceptable dan masih menangkap adegan.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major Issue(s)",
+          "s": "Tidak usable atau terlewat",
+          "t": "Kualitas still atau video yang tertangkap tidak acceptable, atau delay membuat gagal menangkap subjek yang dimaksud.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "25b · Masalah capture mana yang terjadi?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Gagal menangkap gambar atau video sama sekali — tidak ada yang tersimpan ke Photos",
+          "Kualitas gambar buruk<s>resolusi, fokus, atau warna di bawah harapan</s>",
+          "Framing tak terduga<s>berbeda dari field of view-mu</s>",
+          "Delay karena latensi<s>subjek harus menahan pose, atau kamu harus menjaga fokus lebih lama dari diharapkan</s>",
+          "Kesempatan terlewat karena latensi<s>subjek keluar frame sebelum capture</s>",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q26",
+      "num": "26",
+      "cat": "Penutup",
+      "title": "Kepuasan Keseluruhan (Overall Satisfaction)",
+      "ask": "Secara keseluruhan, seberapa puas kamu dengan pengalaman memakai AI percakapan berbasis suara ini untuk mencapai tujuanmu? Nilai tiap asisten secara terpisah, sebelum pertanyaan side-by-side.",
+      "levels": [
+        {
+          "n": "Very dissatisfied",
+          "s": "",
+          "t": "Pengalaman mengecewakanmu.",
+          "tone": "worst"
+        },
+        {
+          "n": "Somewhat dissatisfied",
+          "s": "",
+          "t": "Lebih banyak gesekan daripada nilai.",
+          "tone": "bad"
+        },
+        {
+          "n": "Neither",
+          "s": "",
+          "t": "Tidak puas maupun tidak puas.",
+          "tone": "mid"
+        },
+        {
+          "n": "Somewhat satisfied",
+          "s": "",
+          "t": "Berjalan, dengan reservasi.",
+          "tone": "ok"
+        },
+        {
+          "n": "Very satisfied",
+          "s": "",
+          "t": "Melakukan yang kamu butuhkan dan enak dipakai.",
+          "tone": "good"
+        }
+      ],
+      "fu": {
+        "label": "26b · Kepuasan keseluruhan — teks terbuka",
+        "q": "Dengan kata-katamu sendiri, aspek interaksi mana yang membawamu ke rating ini? Sertakan apa pun yang berjalan sangat baik atau sangat frustasi.",
+        "open": true
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "q27",
+      "num": "27",
+      "cat": "Penutup",
+      "title": "Kepuasan Keseluruhan — side by side (Overall Satisfaction SxS)",
+      "ask": "Memikirkan kedua interaksi suara, mana yang lebih baik secara keseluruhan?",
+      "levels": [],
+      "fu": {
+        "label": "27b · Overall SxS — teks terbuka",
+        "q": "Dengan kata-katamu sendiri, aspek mana yang membuatmu memutuskan interaksi mana yang lebih berkualitas?",
+        "open": true
+      },
+      "note": {
+        "t": "Nilai pengalamannya, bukan transkrip",
+        "b": "Kalau kamu meninjau transkrip, pakai hanya untuk membantu mengingat mana yang lebih baik sebagai percakapan suara. Pengguna nyata menilai dari pengalaman langsung berbicara dan mendengar. Kembali ke definisi \"partner percakapan yang lebih baik\" di kartu Task kalau kamu bimbang."
+      },
+      "rule": null,
+      "sxs": true
+    },
+    {
+      "id": "q28",
+      "num": "28",
+      "cat": "Penutup",
+      "title": "Kecepatan & Responsiveness yang Dirasakan — side by side",
+      "ask": "Memikirkan seberapa cepat dan responsif masing-masing asisten terasa — seberapa cepat mulai merespons setelah kamu selesai bicara, dan apakah kamu pernah merasa menunggu — mana yang terasa lebih cepat dan snappy?",
+      "levels": [],
+      "fu": {
+        "label": "28b · Speed SxS — teks terbuka",
+        "q": "Kalau satu terasa jelas lebih cepat atau lebih lambat, momen atau aspek mana yang paling berkontribusi pada kesan itu?",
+        "open": true
+      },
+      "note": null,
+      "rule": null,
+      "sxs": true,
+      "sxsLabel": "lebih cepat dan responsif"
+    },
+    {
+      "id": "q29",
+      "num": "29",
+      "cat": "Penutup",
+      "title": "Penanganan Interupsi & Alur — side by side",
+      "ask": "Memikirkan seberapa alami masing-masing asisten menangani interupsi dan bolak-balik — seberapa cepat dan anggun berhenti saat kamu menginterupsi, seberapa alami overlap singkat terselesaikan, apakah menyerahkan lantai di momen yang tepat — mana yang lebih baik menangani interupsi dan alur?",
+      "levels": [],
+      "fu": {
+        "label": "29b · Interruption & flow SxS — teks terbuka",
+        "q": "Momen atau perilaku spesifik mana yang membuat perbedaan — berhenti cepat saat diinterupsi, deadlock canggung, berbicara di atasmu, backchannel salah waktu?",
+        "open": true
+      },
+      "note": null,
+      "rule": null,
+      "sxs": true,
+      "sxsNA": true
+    },
+    {
+      "id": "post",
+      "num": "Post",
+      "cat": "Penutup",
+      "title": "Tugas pasca-rating: kualitas transkrip (transcript quality)",
+      "ask": "Apakah ada masalah dengan cara model mentranskripsikan apa yang kamu katakan di transkrip chat pasca-sesi? Ini terpisah dari caption Live yang kamu lihat selama sesi (pertanyaan 2).",
+      "levels": [
+        {
+          "n": "No issues",
+          "s": "Transkrip akurat",
+          "t": "Transkrip cocok dengan apa yang kamu katakan.",
+          "tone": "good"
+        },
+        {
+          "n": "Minor issues",
+          "s": "Sesekali error",
+          "t": "Beberapa kata salah atau prompt terpecah, tapi catatan masih usable.",
+          "tone": "bad"
+        },
+        {
+          "n": "Major issues",
+          "s": "Catatan tidak andal",
+          "t": "Salah transkripsi sering atau serius.",
+          "tone": "worst"
+        }
+      ],
+      "fu": {
+        "label": "Masalah transkrip mana yang terjadi?",
+        "q": "Pilih semua yang sesuai.",
+        "opts": [
+          "Melewatkan prompt pengguna sepenuhnya",
+          "Melewatkan kata di awal atau akhir prompt",
+          "Mentranskripsikan orang atau audio latar",
+          "Mentranskripsikan sebagian respons bot sendiri sebagai prompt pengguna",
+          "Salah dengar kata dalam bahasa yang sama",
+          "Salah dengar beberapa kata sebagai bahasa yang salah",
+          "Memecah satu prompt pengguna jadi beberapa prompt",
+          "Untuk skrip non-Latin atau skrip dengan diakritik dan aksen: salah transkripsi, atau melewatkan kesempatan mentranskripsikan kata native secara konsisten dan benar",
+          "Other — teks terbuka"
+        ]
+      },
+      "note": null,
+      "rule": null
+    },
+    {
+      "id": "files",
+      "num": "Files",
+      "cat": "Penutup",
+      "title": "Mengumpulkan data — apa yang diserahkan (Collecting data)",
+      "ask": "Empat link menutup tugas. Kumpulkan sebelum kamu meninggalkan sesi, bukan setelah.",
+      "levels": [],
+      "fu": {
+        "label": "Checklist deliverable",
+        "q": "Keempatnya wajib agar side-by-side bisa dipakai.",
+        "opts": [
+          "Gemini share link",
+          "Gemini audio link",
+          "cGPT share link",
+          "cGPT audio link"
+        ]
+      },
+      "note": null,
+      "rule": null
+    }
+  ],
+  "DEFS": [
+    {
+      "g": "Kategori salah dengar (Mishearing categories)",
+      "for": "Dipakai oleh pertanyaan 3, Live captions (2b), dan transkrip pasca-sesi",
+      "items": [
+        {
+          "t": "Melewatkan prompt sepenuhnya",
+          "d": "Tidak ada yang kamu katakan di prompt itu yang ditranskripsikan.",
+          "e": "\"How are you?\" → transkrip kosong",
+          "_id": "d-0-missed-prompt-completely"
+        },
+        {
+          "t": "Kata hilang di awal atau akhir prompt, atau prompt terpecah dua",
+          "d": "Kata hilang dari salah satu ujung, atau satu prompt dipecah jadi dua.",
+          "e": "\"How do you cook potatoes?\" → \"you cook potatoes\" · \"How do you cook\" · atau \"Tell me about cats and\" + \"Dogs\"",
+          "_id": "d-0-missing-words-at-the-start-or-end-of-a-prompt-or-a-prompt-split-in-two"
+        },
+        {
+          "t": "Terganggu kebisingan latar",
+          "d": "Mentranskripsikan kebisingan latar atau ucapan orang lain alih-alih kamu.",
+          "e": "Kamu tidak bilang apa-apa; ditranskripsikan gibberish seperti \"how where facebook\"",
+          "_id": "d-0-distracted-by-background-noise"
+        },
+        {
+          "t": "Salah dengar kata dalam bahasa yang sama",
+          "d": "Salah dengar umum yang tidak tercakup kategori lain.",
+          "e": "\"Rules\" ditranskripsikan sebagai \"Roles\"",
+          "_id": "d-0-misheard-word-s-within-the-same-language"
+        },
+        {
+          "t": "Salah dengar sebagai bahasa yang salah",
+          "d": "Katamu didengar sebagai kata dari bahasa yang tidak kamu pakai.",
+          "e": "Inggris \"focus\" salah dengar sebagai Spanyol \"foco\"",
+          "_id": "d-0-misheard-as-wrong-language"
+        },
+        {
+          "t": "Salah dengar pengucapan atau nadaku",
+          "d": "Melewatkan nuansa cara kamu bicara — pengucapan, nada, atau affect.",
+          "_id": "d-0-misheard-my-pronunciation-or-tone"
+        },
+        {
+          "t": "Salah paham prompt dengan banyak bahasa",
+          "d": "Salah paham ucapan yang berisi lebih dari satu bahasa.",
+          "_id": "d-0-misunderstood-a-prompt-with-multiple-languages"
+        },
+        {
+          "t": "Salah paham suara non-ucapan yang kuhasilkan",
+          "d": "Salah baca tawa, batuk, geram, dan sejenisnya.",
+          "_id": "d-0-misunderstood-a-non-speech-sound-i-made"
+        },
+        {
+          "t": "Salah paham suara non-ucapan di lingkungan",
+          "d": "Salah baca suara yang kamu ingin didengar — kicauan burung, suara mobil, audio latar relevan lainnya.",
+          "_id": "d-0-misunderstood-non-speech-sounds-in-my-environment"
+        },
+        {
+          "t": "Other",
+          "d": "Kategori ekstra yang bisa kamu pilih sendiri atau bersama yang lain. Teks terbuka wajib di sini, tidak seperti yang lain yang opsional."
+        }
+      ]
+    },
+    {
+      "g": "Kategori salah paham visual (Visual misunderstanding)",
+      "for": "Dipakai oleh pertanyaan 4",
+      "items": [
+        {
+          "t": "Halusinasi visual",
+          "d": "Melihat sesuatu yang tidak ada di adegan.",
+          "_id": "d-1-visual-hallucination"
+        },
+        {
+          "t": "Hitung buruk",
+          "d": "Gagal menghitung objek di adegan dengan benar.",
+          "_id": "d-1-poor-counting"
+        },
+        {
+          "t": "Salah identifikasi objek",
+          "d": "Mengidentifikasi objek target sebagai sesuatu selain yang sebenarnya.",
+          "_id": "d-1-object-misidentification"
+        },
+        {
+          "t": "Salah tafsir aksi / gerakan",
+          "d": "Salah baca aksi atau gerakan di adegan.",
+          "_id": "d-1-action-motion-misinterpretation"
+        },
+        {
+          "t": "Salah tafsir adegan",
+          "d": "Salah baca hubungan antara subjek dan objek, atau gestalt keseluruhan adegan.",
+          "_id": "d-1-scene-misinterpretation"
+        },
+        {
+          "t": "Disorientasi spasial / arah",
+          "d": "Bingung arah (kiri/kanan, atas/bawah), urutan objek, atau lokasi objek relatif satu sama lain.",
+          "_id": "d-1-spatial-directional-disorientation"
+        },
+        {
+          "t": "Salah tafsir teks / tulisan tangan",
+          "d": "Salah baca atau gagal memahami tulisan manusia.",
+          "_id": "d-1-text-handwriting-misinterpretation"
+        },
+        {
+          "t": "Kontekstualisasi objek buruk",
+          "d": "Salah mengidentifikasi objek yang konteks di dalam adegan seharusnya sudah membuat jelas.",
+          "_id": "d-1-poor-object-contextualisation"
+        },
+        {
+          "t": "Melewatkan objek sepenuhnya",
+          "d": "Gagal melihat atau menyadari objek yang ada.",
+          "_id": "d-1-misses-object-completely"
+        },
+        {
+          "t": "Fokus visual buruk",
+          "d": "Tidak bisa fokus pada objek atau bagian adegan yang penting bagimu saat ini.",
+          "_id": "d-1-poor-visual-focus"
+        },
+        {
+          "t": "Grounding visual buruk",
+          "d": "Sepertinya tidak memakai konteks adegan sama sekali dalam respons.",
+          "_id": "d-1-poor-visual-grounding"
+        },
+        {
+          "t": "Pemulihan buruk — sycophancy",
+          "d": "Menangani koreksimu dengan buruk: langsung menyerah dan setuju dengan pernyataan salah yang kamu buat.",
+          "_id": "d-1-poor-recovery-sycophancy"
+        },
+        {
+          "t": "Pemulihan buruk — keras kepala",
+          "d": "Menangani koreksimu dengan buruk: menggandakan kesalahannya.",
+          "_id": "d-1-poor-recovery-stubbornness"
+        },
+        {
+          "t": "Terlalu deskriptif",
+          "d": "Terus menceritakan apa yang dilihat saat prompt dan percakapanmu tidak memberi alasan untuk itu.",
+          "_id": "d-1-overly-descriptive"
+        },
+        {
+          "t": "Solicitasi buruk",
+          "d": "Tidak bisa meminta input multimodal yang dibutuhkan dengan jelas dan benar.",
+          "_id": "d-1-poor-solicitation"
+        },
+        {
+          "t": "Kesadaran diri / deskripsi kemampuan buruk",
+          "d": "Tidak bisa menjelaskan kemampuan multimodalnya sendiri dengan jelas dan benar.",
+          "_id": "d-1-poor-self-awareness-capabilities-description"
+        },
+        {
+          "t": "Punt buruk",
+          "d": "Gagal mengomunikasikan celah kemampuan atau performa dengan cara yang memberitahu apa yang terjadi dan menawarkan jalan maju.",
+          "_id": "d-1-poor-punts"
+        },
+        {
+          "t": "Salah paham anotasi pengguna",
+          "d": "Saat screenshare, melewatkan atau salah baca apa yang kamu lingkari, garisbawahi, atau highlight di layar.",
+          "_id": "d-1-misunderstood-user-annotation"
+        }
+      ]
+    },
+    {
+      "g": "Masalah overlay visual (Visual overlay issues)",
+      "for": "Dipakai oleh pertanyaan 5",
+      "items": [
+        {
+          "t": "Keandalan (Reliability)",
+          "d": "Hanya untuk permintaan eksplisit — kamu memintanya menampilkan, menyorot, atau melingkari sesuatu, diharapkan menghasilkan overlay atau mengaku sudah, dan tidak.",
+          "_id": "d-2-reliability"
+        },
+        {
+          "t": "Kesempatan terlewat (Missed opportunity)",
+          "d": "Overlay akan memperbaiki respons, tapi tidak dihasilkan.",
+          "_id": "d-2-missed-opportunity"
+        },
+        {
+          "t": "Over trigger",
+          "d": "Memakai overlay saat percakapan maupun konteks visual tidak memanggilnya, dan overlay yang tidak perlu membuat lebih sulit, menjengkelkan, atau lebih buruk.",
+          "_id": "d-2-over-trigger"
+        },
+        {
+          "t": "Latensi (Latency)",
+          "d": "Timing overlay relatif terhadap percakapan meleset — lambat muncul, mengurangi kebermanfaatan atau membuat sulit diikuti.",
+          "_id": "d-2-latency"
+        },
+        {
+          "t": "Target salah (Incorrect target)",
+          "d": "Overlay menyorot atau menunjuk objek di layar yang salah.",
+          "_id": "d-2-incorrect-target"
+        },
+        {
+          "t": "Desain visual buruk",
+          "d": "Bentuk overlay membingungkan, mengalihkan, atau tidak membantu.",
+          "_id": "d-2-poor-visual-design"
+        },
+        {
+          "t": "Overlay dihapus terlalu cepat",
+          "d": "Tidak cukup lama di layar untuk berguna.",
+          "_id": "d-2-overlay-removed-too-soon"
+        },
+        {
+          "t": "Overlay bertahan terlalu lama",
+          "d": "Bertahan di layar lebih lama dari yang diperlukan.",
+          "_id": "d-2-overlay-persisted-too-long"
+        },
+        {
+          "t": "Sulit melacak atau mengikuti objek",
+          "d": "Overlay tidak mau tetap di objek saat kamera bergerak.",
+          "_id": "d-2-difficulty-tracking-or-following-the-object"
+        },
+        {
+          "t": "Jumlah overlay tidak cukup",
+          "d": "Lebih sedikit overlay yang di-render daripada yang situasi butuhkan.",
+          "_id": "d-2-insufficient-number-of-overlays"
+        },
+        {
+          "t": "Tidak bisa berinteraksi dengan overlay",
+          "d": "Tidak bisa memenuhi permintaan berinteraksi — menghapus overlay, mempertahankannya lebih lama, dan sebagainya.",
+          "_id": "d-2-inability-to-interact-with-the-overlay"
+        },
+        {
+          "t": "Ketidakcocokan antara overlay dan isi respons",
+          "d": "Apa yang dikatakannya dan apa yang disorot tidak selaras.",
+          "_id": "d-2-mismatch-between-overlay-and-response-content"
+        }
+      ]
+    },
+    {
+      "g": "Masalah kualitas suara (Voice quality issues)",
+      "for": "Dipakai oleh pertanyaan 7",
+      "items": [
+        {
+          "t": "Kata salah diucapkan",
+          "d": "Kata spesifik salah diucapkan dalam respons.",
+          "e": "\"house\" sebagai HOSE · \"tortilla\" sebagai TOR-TIL-LA · \"50 MPH\" dibaca \"50 megawatts per hour\"",
+          "_id": "d-3-mispronounced-words"
+        },
+        {
+          "t": "Masalah dengan aksen",
+          "d": "Gaya pengucapan tidak alami atau atipikal untuk bahasa — kata individu atau inkonsistensi lintas kalimat.",
+          "e": "Suara Portuguese Eropa terdengar Brasil · suara Australian English bergeser ke American atau British lintas kata",
+          "_id": "d-3-issue-with-accent"
+        },
+        {
+          "t": "Masalah dengan level proyeksi",
+          "d": "Terlalu keras atau terlalu pelan — berteriak atau berbisik — untuk konteks.",
+          "e": "Suara semakin pelan sepanjang respons sampai sulit didengar",
+          "_id": "d-3-issue-with-projection-level"
+        },
+        {
+          "t": "Masalah dengan steerability",
+          "d": "Tidak bisa mengikuti instruksi eksplisit tentang bagaimana menghasilkan ucapan, termasuk perilaku full-duplex: seberapa sering backchannel, apakah overlap denganmu (seperti live translation), kapan menginterupsi.",
+          "e": "Kamu minta bicara pelan di tempat umum tapi tidak · minta aksen Australia tapi tidak patuh · minta berhenti bilang \"mhmm\" tapi lanjut · ingin berbicara di atasmu untuk terjemahan tapi menunggu giliran penuhmu · minta biarkan kamu selesai tapi terus menyela",
+          "_id": "d-3-issue-with-steerability"
+        },
+        {
+          "t": "Accent drift",
+          "d": "Aksen bergeser sendiri, tanpa kamu minta. Berbeda dari \"masalah dengan aksen\" (aksen salah) dan steerability (mengabaikan instruksi) — ini kegagalan konsistensi tanpa diminta.",
+          "e": "Kalimat yang mulai British English dan selesai American",
+          "_id": "d-3-accent-drift"
+        },
+        {
+          "t": "Voice type drift",
+          "d": "Identitas vokal — gender yang dirasakan, kualitas usia, atau karakter fundamental — bergeser sendiri, tanpa kamu minta.",
+          "e": "Suara yang dirasakan male terdengar female atau androgynous di turn kemudian · suara young-adult jadi lebih tua atau gravelly di tengah respons · acknowledgment terdengar seperti pembicara berbeda dari jawabannya",
+          "_id": "d-3-voice-type-drift"
+        },
+        {
+          "t": "Pacing buruk",
+          "d": "Terlalu lambat, terlalu cepat, atau pergeseran laju bicara yang tidak alami dalam respons.",
+          "e": "Mempercepat secara tidak alami menuju akhir kalimat panjang",
+          "_id": "d-3-poor-pacing"
+        },
+        {
+          "t": "Pausing buruk",
+          "d": "Terlalu banyak jeda, terlalu sedikit, atau jeda di tempat aneh.",
+          "e": "Jeda di tengah kalimat, atau sebelum bicara, dengan cara yang terasa tidak alami",
+          "_id": "d-3-poor-pausing"
+        },
+        {
+          "t": "Prosodi tidak alami",
+          "d": "Infleksi tidak mengikuti gaya ekspresif tipikal — kata salah ditekan, atau intonasi tidak cocok apakah kalimat pertanyaan, pernyataan, atau seruan.",
+          "e": "Bertanya tanpa menaikkan pitch di akhir · \"diet cat FOOD\" alih-alih \"diet CAT food\"",
+          "_id": "d-3-unnatural-prosody"
+        },
+        {
+          "t": "Emosionalitas tidak pantas",
+          "d": "Valensi emosional di suara tidak cocok dengan konten — emosi salah, atau tidak ada emosi di mana seharusnya ada.",
+          "e": "Terdengar ceria saat menawarkan simpati · tetap datar atau robotik di sesuatu yang ringan · terdengar marah tak terduga, atau lebih emosional dari yang konteks butuhkan",
+          "_id": "d-3-inappropriate-emotionality"
+        },
+        {
+          "t": "Pemakaian suara non-ucapan buruk",
+          "d": "Tawa, desah, atau napas tidak alami.",
+          "e": "Tertawa atau batuk di momen yang tidak pantas",
+          "_id": "d-3-poor-use-of-non-speech-sounds"
+        },
+        {
+          "t": "Artefak audio",
+          "d": "Pop, glitch, static, atau noise lain di respons.",
+          "_id": "d-3-audio-artifacts"
+        },
+        {
+          "t": "Fidelitas audio buruk",
+          "d": "Kualitas audio tidak crisp atau jelas, membuat suara lebih sulit didengar.",
+          "_id": "d-3-poor-audio-fidelity"
+        },
+        {
+          "t": "Berhenti bicara di tengah kalimat atau terlalu dini",
+          "d": "Berhenti berbicara sebelum menyelesaikan pemikiran atau kalimat.",
+          "_id": "d-3-stops-talking-mid-sentence-or-too-early"
+        },
+        {
+          "t": "Acknowledgment intermediate terdengar tidak alami atau tidak konsisten",
+          "d": "Suara \"thinking\" atau \"sebentar\" berbeda nada, pacing, atau kualitas dari sisa respons.",
+          "_id": "d-3-intermediate-acknowledgment-sounded-unnatural-or-inconsistent"
+        },
+        {
+          "t": "Pengucapan backchannel secara fonetik tidak alami",
+          "d": "Backchannel diucapkan dengan aksen atau kualitas fonetik yang terdengar machine-generated.",
+          "e": "\"mhmm\" terdengar datar dan sintetis daripada voiced · \"uh-huh\" dengan cadence atau kualitas vokal tidak alami",
+          "_id": "d-3-backchannel-pronunciation-phonetically-unnatural"
+        },
+        {
+          "t": "Identitas suara backchannel tidak konsisten dengan suara utama",
+          "d": "Backchannel terdengar seperti pembicara berbeda dalam timbre, pitch, atau karakter.",
+          "e": "Suara utama hangat mid-pitched yang \"mhmm\"-nya terdengar datar dan robotik, atau jelas lebih muda, lebih tua, atau gender yang dirasakan berbeda",
+          "_id": "d-3-backchannel-voice-identity-inconsistent-with-main-voice"
+        }
+      ]
+    }
+  ]
+}
